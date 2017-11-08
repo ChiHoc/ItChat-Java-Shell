@@ -6,50 +6,11 @@ import json
 import time
 import inspect
 import sys
+import base64
+import io
+from itchat.returnvalues import ReturnValue
 from threading import Thread
-from enum import Enum
 
-CmdTypeMapper = {'1': 'login',
-               '2': 'auto_login',
-               '3': 'get_QRuuid',
-               '4': 'get_QR',
-               '5': 'check_login',
-               '6': 'web_init',
-               '7': 'show_mobile_login',
-               '8': 'start_receiving',
-               '9': 'get_msg',
-               '10': 'logout',
-               '11': 'update_chatroom',
-               '12': 'update_friend',
-               '13': 'get_contact',
-               '14': 'get_friends',
-               '15': 'get_chatrooms',
-               '16': 'get_mps',
-               '17': 'set_alias',
-               '18': 'set_pinned',
-               '19': 'add_friend',
-               '20': 'get_head_img',
-               '21': 'create_chatroom',
-               '22': 'set_chatroom_name',
-               '23': 'delete_member_from_chatroom',
-               '24': 'add_member_into_chatroom',
-               '25': 'send_raw_msg',
-               '26': 'send_msg',
-               '27': 'upload_file',
-               '28': 'send_file',
-               '29': 'send_image',
-               '30': 'send_video',
-               '31': 'send',
-               '32': 'revoke',
-               '33': 'dump_login_status',
-               '34': 'load_login_status',
-               '35': 'configured_reply',
-               '36': 'msg_register',
-               '37': 'run',
-               '38': 'search_friends',
-               '39': 'search_chatrooms',
-               '40': 'search_mps'
-               }
 server_sock = None
 client_sock = None
 client_addr = None
@@ -58,7 +19,7 @@ socket_fd = None
 
 def start_server():
     global server_sock, client_sock, client_addr, socket_fd
-    socket.setdefaulttimeout(5)
+    socket.setdefaulttimeout(30)
     try:
         server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     except socket.error, e:
@@ -169,33 +130,58 @@ def send_string(string):
         return
 
 def switch_cmd(cmd, argsDict):
-    method = getattr(itchat, CmdTypeMapper[cmd])
+    method = getattr(itchat, cmd)
     args, varargs, keywords, defaults = inspect.getargspec(method)
-    defaults_args = dict(zip(args[-len(defaults):], defaults))
 
     if not hasattr(method, '__call__'):
         return
 
-    selector = 'itchat.' + CmdTypeMapper[cmd] + '('
+    selector = 'itchat.' + cmd + '('
 
     argsList = []
     for (key, value) in argsDict.items():
         if key not in args:
             continue
-        if key not in defaults_args:
-            argsList.append(key + '=\'' + value + '\'')
-        elif defaults_args[key] in (True, False, None):
-            argsList.append(key + '=' + value + '')
         else:
-            argsList.append(key + '=\'' + value + '\'')
+            argsList.append(key + '=' + value + '')
     selector += ','.join(argsList) +  ')'
     print('method: ' + selector)
-    # eval(method)
+    response = eval(selector)
+    if response == None:
+        send_string("{\"Cmd\":\"" + cmd + "\"}")
+    elif isinstance(response, basestring) or isinstance(response, dict) or isinstance(response, list):
+        send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":" + json.dumps(response) + "}")
+    elif isinstance(response, io.BytesIO):
+        send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":\"" + base64.b64encode(response.getvalue()) + "\"}")
+    elif isinstance(response, ReturnValue):
+        send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":" + json.dumps(response['BaseResponseDO']) + "}")
+    else:
+        print('response: ' + str(response))
+        send_string("{\"Cmd\":\"" + cmd + "\"}")
+    # send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":{\"Method\":\"" + selector + "\"}}")
+
 
 def handle_receive(recv_data):
     if len(recv_data) > 0:
         dic = json.loads(recv_data)
         switch_cmd(dic['Cmd'], dic['Args'])
+
+def login_qrCallback(uuid, status, qrcode):
+    data = {'uuid': uuid, 'status': status, 'qrcode': base64.b64encode(qrcode)}
+    send_string("{'Cmd':'login_qrCallback','Args':" + json.dumps(data) + "}")
+
+def login_loginCallback():
+    send_string("{'Cmd':'login_loginCallback'}")
+
+def login_exitCallback():
+    send_string("{'Cmd':'login_exitCallback'")
+
+def loginStatus_loginCallback():
+    send_string("{'Cmd':'loginStatus_loginCallback'}")
+
+def loginStatus_exitCallback():
+    send_string("{'Cmd':'loginStatus_exitCallback'")
+
 
 
 # itchat.auto_login(hotReload=True)

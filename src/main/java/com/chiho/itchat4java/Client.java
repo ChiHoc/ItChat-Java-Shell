@@ -1,5 +1,6 @@
 package com.chiho.itchat4java;
 
+import com.chiho.itchat4java.interfaces.Callback;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +18,8 @@ public class Client {
 	private int port;
 	private Socket socket;
 	private boolean isConnected = false;
+	private BufferedReader bufferedReader;
+	private Callback<String> receiveCallback;
 
 	private long lastSendTime; //最后一次发送数据的时间
 
@@ -30,7 +33,8 @@ public class Client {
 	 *
 	 * @return 布尔值
 	 */
-	public boolean start() {
+	public boolean start( Callback<String> receiveCallback ) {
+		this.receiveCallback = receiveCallback;
 		return Client.this.connect();
 	}
 
@@ -53,6 +57,7 @@ public class Client {
 
 	/**
 	 * 连接
+	 *
 	 * @return 布尔值
 	 */
 	private boolean connect() {
@@ -76,12 +81,15 @@ public class Client {
 		return true;
 	}
 
+
 	/**
 	 * 发送字符串
+	 *
 	 * @param string 字符串
+	 *
 	 * @return 布尔值
 	 */
-	public boolean sendString( String string ) {
+	public boolean sendString( final String string ) {
 		if ( socket == null || socket.isClosed() ) {
 			return false;
 		}
@@ -92,12 +100,14 @@ public class Client {
 			System.out.println("The sending data is: " + string);
 			pw.write(string + "\r\n");
 			pw.flush();
+
 		} catch (IOException e) {
 			System.out.println("Error sending data!");
 			e.printStackTrace();
 			Client.this.stop();
 			return false;
 		}
+
 		return true;
 	}
 
@@ -106,8 +116,8 @@ public class Client {
 	 */
 	class KeepAliveWatchDog implements Runnable {
 
-		long checkDelay = 10;
-		long keepAliveDelay = 2000;
+		long checkDelay = 500;
+		long keepAliveDelay = 5000;
 
 		public void run() {
 			while ( isConnected ) {
@@ -136,10 +146,11 @@ public class Client {
 				try {
 					InputStream in = socket.getInputStream();
 					if ( in.available() > 0 ) {
-						BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+						bufferedReader = new BufferedReader(new InputStreamReader(in));
 						String string;
 						while ( ( string = bufferedReader.readLine() ) != null ) {
 							System.out.println("The receiving data is: " + string);
+							receiveCallback.call(string);
 						}
 					} else {
 						try {

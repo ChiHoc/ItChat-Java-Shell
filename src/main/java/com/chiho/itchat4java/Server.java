@@ -3,13 +3,13 @@ package com.chiho.itchat4java;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class Server {
 
 	private String scriptPath = "src/main/resources/pyserver.py";
 	private Process pyProcess;
-	private BufferedReader inputReader;
 
 	public Server( String scriptPath ) {
 		this.scriptPath = scriptPath;
@@ -20,14 +20,6 @@ public class Server {
 			File file = new File(scriptPath);
 			ProcessBuilder processBuilder = new ProcessBuilder("python", file.getAbsolutePath());
 			pyProcess = processBuilder.start();
-			inputReader = new BufferedReader(new InputStreamReader(pyProcess.getInputStream()));
-			BufferedReader errorReader = new BufferedReader(new InputStreamReader(pyProcess.getErrorStream()));
-			String line;
-			if ( errorReader.ready() ) {
-				while ( ( line = errorReader.readLine() ) != null ) {
-					System.out.println(line);
-				}
-			}
 			new Thread(new ServerOutputWatchDog()).start();
 			// Destory python server before exit
 			Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -53,15 +45,27 @@ public class Server {
 	class ServerOutputWatchDog implements Runnable {
 
 		public void run() {
-			String line;
-			try {
-				if ( inputReader.ready() ) {
-					while ( ( line = inputReader.readLine() ) != null ) {
-						System.out.println(line);
+			while ( pyProcess.isAlive() ) {
+				try {
+					InputStream in = pyProcess.getInputStream();
+					if ( in.available() > 0 ) {
+						BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+						String string;
+						while ( ( string = bufferedReader.readLine() ) != null ) {
+							System.out.println(string);
+						}
+					} else {
+						BufferedReader errorReader = new BufferedReader(new InputStreamReader(pyProcess.getErrorStream()));
+						String string;
+						if ( errorReader.ready() ) {
+							while ( ( string = errorReader.readLine() ) != null ) {
+								System.out.println(string);
+							}
+						}
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}
