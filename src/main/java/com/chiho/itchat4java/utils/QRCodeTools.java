@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -17,7 +18,6 @@ import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.BASE64Decoder;
 
 public class QRCodeTools {
 
@@ -54,15 +54,16 @@ public class QRCodeTools {
 	 *
 	 * @return
 	 */
-	public static boolean showLoginCode( byte[] bytes ) {
+	public static boolean showLoginCode( String imageBase64Data ) {
 
 		int CODE_WIDTH = 190;
 		int CODE_HEIGHT = 190;
 		int CODE_MARGIN_TOP = 40;
 
 		BufferedImage resizedImg;
-		InputStream inputStream = new ByteArrayInputStream(bytes);
 		try {
+			byte[] imageByte = Base64.getDecoder().decode(imageBase64Data);
+			InputStream inputStream = new ByteArrayInputStream(imageByte);
 			resizedImg = new BufferedImage(CODE_WIDTH, CODE_HEIGHT, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics2D = resizedImg.createGraphics();
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -104,9 +105,8 @@ public class QRCodeTools {
 		int CODE_MARGIN_TOP = 78;
 
 		BufferedImage resizedImg;
-		BASE64Decoder decoder = new BASE64Decoder();
 		try {
-			byte[] imageByte = decoder.decodeBuffer(imageBase64Data);
+			byte[] imageByte = Base64.getDecoder().decode(imageBase64Data);
 			InputStream inputStream = new ByteArrayInputStream(imageByte);
 			resizedImg = new BufferedImage(AVATAR_WIDTH, AVATAR_HEIGHT, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics2D = resizedImg.createGraphics();

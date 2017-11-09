@@ -76,7 +76,7 @@ public class Client {
 		isConnected = true;
 
 		lastSendTime = System.currentTimeMillis();
-		new Thread(new KeepAliveWatchDog()).start();  //保持长连接的线程，每隔2秒项服务器发一个一个保持连接的心跳消息
+//		new Thread(new KeepAliveWatchDog()).start();  //保持长连接的线程，每隔2秒项服务器发一个一个保持连接的心跳消息
 		new Thread(new ReceiveWatchDog()).start();    //接受消息的线程，处理消息
 		return true;
 	}

@@ -19,7 +19,7 @@ socket_fd = None
 
 def start_server():
     global server_sock, client_sock, client_addr, socket_fd
-    socket.setdefaulttimeout(30)
+    # socket.setdefaulttimeout(30)
     try:
         server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     except socket.error, e:
@@ -107,7 +107,7 @@ def communicate():
         for index, value in enumerate(buf.split('\r\n')):
 
             if value.startswith('KeepAlive'):
-                print('The receiving data is heartbeat')
+                # print('The receiving data is heartbeat')
                 continue
 
             print('The receiving data is', value)
@@ -146,17 +146,29 @@ def switch_cmd(cmd, argsDict):
             argsList.append(key + '=' + value + '')
     selector += ','.join(argsList) +  ')'
     print('method: ' + selector)
-    response = eval(selector)
+    try:
+        response = eval(selector)
+    except BaseException, e:
+        print(str(e))
+        response = ReturnValue({'BaseResponse': {
+            'ErrMsg': 'unknown error.',
+            'RawMsg': u'未知错误',
+            'Ret': -999, }})
+
+    print('response: ' + str(response))
     if response == None:
+        print('None')
         send_string("{\"Cmd\":\"" + cmd + "\"}")
     elif isinstance(response, basestring) or isinstance(response, dict) or isinstance(response, list):
+        print('basestring')
         send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":" + json.dumps(response) + "}")
     elif isinstance(response, io.BytesIO):
+        print('BytesIO')
         send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":\"" + base64.b64encode(response.getvalue()) + "\"}")
-    elif isinstance(response, ReturnValue):
-        send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":" + json.dumps(response['BaseResponseDO']) + "}")
+    elif cmd == 'get_msg':
+        send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":{\"AddMsgList\":" + json.dumps(response[0]) + ",\"ModContactList\":" + json.dumps(response[1]) + "}}")
     else:
-        print('response: ' + str(response))
+        print('else')
         send_string("{\"Cmd\":\"" + cmd + "\"}")
     # send_string("{\"Cmd\":\"" + cmd + "\",\"Args\":{\"Method\":\"" + selector + "\"}}")
 

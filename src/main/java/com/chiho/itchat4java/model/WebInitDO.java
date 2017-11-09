@@ -1,24 +1,39 @@
 package com.chiho.itchat4java.model;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import java.io.Serializable;
 import java.util.List;
 
 public class WebInitDO implements Serializable {
 
 	private static final long serialVersionUID = 4177198637499777765L;
+	@JSONField( name = "Count" )
 	private Integer count;
+	@JSONField( name = "SyncKey" )
 	private SyncKeyDO syncKey;
+	@JSONField( name = "SystemTime" )
 	private Long systemTime;
+	@JSONField( name = "SKey" )
 	private String sKey;
+	@JSONField( name = "ClientVersion" )
 	private Long clientVersion;
+	@JSONField( name = "BaseResponse" )
 	private BaseResponseDO baseResponse;
+	@JSONField( name = "MPSubscribeMsgCount" )
 	private Integer mPSubscribeMsgCount;
+	@JSONField( name = "GrayScale" )
 	private Integer grayScale;
+	@JSONField( name = "ChatSet" )
 	private String chatSet;
+	@JSONField( name = "InviteStartCount" )
 	private Integer inviteStartCount;
+	@JSONField( name = "User" )
 	private ContactDO user;
+	@JSONField( name = "MPSubscribeMsgList" )
 	private List<MpSubscribeMsgDO> mPSubscribeMsgList;
+	@JSONField( name = "ContactList" )
 	private List<ContactDO> contactList;
+	@JSONField( name = "ClickReportInterval" )
 	private Integer clickReportInterval;
 
 	public Integer getCount() {
@@ -133,10 +148,12 @@ public class WebInitDO implements Serializable {
 		this.clickReportInterval = clickReportInterval;
 	}
 
-	public static class SyncKeyDO implements Serializable{
+	public static class SyncKeyDO implements Serializable {
 
 		private static final long serialVersionUID = 8137699321024686196L;
+		@JSONField( name = "Count" )
 		private Integer count;
+		@JSONField( name = "List" )
 		private List<SyncKeyPair> list;
 
 		public Integer getCount() {
@@ -155,10 +172,12 @@ public class WebInitDO implements Serializable {
 			this.list = list;
 		}
 
-		public static class SyncKeyPair  implements Serializable{
+		public static class SyncKeyPair implements Serializable {
 
 			private static final long serialVersionUID = -382066930873129172L;
+			@JSONField( name = "Val" )
 			private Integer val;
+			@JSONField( name = "Key" )
 			private Integer key;
 
 			public Integer getVal() {

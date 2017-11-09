@@ -1,16 +1,23 @@
 package com.chiho.itchat4java.model;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import java.io.Serializable;
 import java.util.List;
 
 public class MpSubscribeMsgDO implements Serializable {
 
 	private static final long serialVersionUID = -6911455745949980095L;
+	@JSONField( name = "UserName" )
 	private String userName;
+	@JSONField( name = "MPArticleList" )
 	private List<MpArticleDO> mPArticleList;
+	@JSONField( name = "NickName" )
 	private String nickName;
+	@JSONField( name = "MPArticleCount" )
 	private Integer mPArticleCount;
+	@JSONField( name = "Time" )
 	private Long time;
+
 
 	public String getUserName() {
 		return userName;
@@ -55,9 +62,13 @@ public class MpSubscribeMsgDO implements Serializable {
 	public static class MpArticleDO implements Serializable {
 
 		private static final long serialVersionUID = -67800471644316752L;
+		@JSONField( name = "Url" )
 		private String url;
+		@JSONField( name = "Cover" )
 		private String cover;
+		@JSONField( name = "Digest" )
 		private String digest;
+		@JSONField( name = "Title" )
 		private String title;
 
 		public String getUrl() {

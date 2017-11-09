@@ -4,10 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.chiho.itchat4java.enums.AddFriendStatusEnum;
 import com.chiho.itchat4java.enums.CmdTypeEnum;
+import com.chiho.itchat4java.exceptions.ItChatException;
 import com.chiho.itchat4java.interfaces.Callback;
 import com.chiho.itchat4java.model.ContactDO;
+import com.chiho.itchat4java.model.CreateChatroomDO;
+import com.chiho.itchat4java.model.HeadImgDO;
+import com.chiho.itchat4java.model.MsgDO;
 import com.chiho.itchat4java.model.QrCodeDO;
 import com.chiho.itchat4java.model.ShowMobileLoginDO;
+import com.chiho.itchat4java.model.StatusResponseDO;
 import com.chiho.itchat4java.model.WebInitDO;
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +72,14 @@ public class Shell {
 					break;
 					default: {
 						try {
-							callback.call(JSON.parseObject(msgObj.getString("Args"), Class.forName(typeEnum.getRespType())));
+							String argStr = msgObj.getString("Args");
+							if ( argStr.contains("BaseResponse") ) {
+								callback.call(JSON.parseObject(argStr, StatusResponseDO.class));
+							} else if ( argStr.startsWith("[") ) {
+								callback.call(JSON.parseArray(argStr, Class.forName(typeEnum.getRespType())));
+							} else {
+								callback.call(JSON.parseObject(argStr, Class.forName(typeEnum.getRespType())));
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 							callback.call(null);
@@ -92,7 +104,8 @@ public class Shell {
 	}
 
 	@SafeVarargs
-	private final Object sendRequest( CmdTypeEnum cmd, Pair<String, String>... args ) {
+	private final Object sendRequest( CmdTypeEnum cmd, Pair<String, String>... args )
+		throws ItChatException {
 		String message = genMessage(cmd, args);
 		final Semaphore semaphore = new Semaphore(0);
 		final Object[] respObj = new Object[ 1 ];
@@ -104,12 +117,17 @@ public class Shell {
 			client.sendString(message);
 			semaphore.acquire();
 			callbackMapper.remove(cmd.getType());
-			System.out.println(cmd.getType() + ": " + respObj[ 0 ]);
+			if ( respObj[ 0 ] instanceof StatusResponseDO ) {
+				StatusResponseDO statusResponseDO = (StatusResponseDO)respObj[ 0 ];
+				if ( statusResponseDO.getBaseResponse().getRet() != 0 ) {
+					throw new ItChatException(statusResponseDO.getBaseResponse());
+				}
+			}
 			return respObj[ 0 ];
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -124,7 +142,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public void login( Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback ) {
+	public void login( Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( enableCmdQR != null ) {
 			pairs.add(new Pair<>("enableCmdQR", enableCmdQR ? "True" : "False"));
@@ -171,7 +190,7 @@ public class Shell {
 	 *
 	 * @return uuid
 	 */
-	public String getQRUuid() {
+	public String getQRUuid() throws ItChatException {
 		return (String)sendRequest(CmdTypeEnum.GET_QRUUID);
 	}
 
@@ -185,7 +204,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public String getQR( String uuid, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback ) {
+	public String getQR( String uuid, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( uuid != null ) {
 			pairs.add(new Pair<>("uuid", "'" + uuid + "'"));
@@ -215,7 +235,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public String checkLogin( String uuid ) {
+	public String checkLogin( String uuid ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( uuid != null ) {
 			pairs.add(new Pair<>("uuid", uuid));
@@ -238,7 +258,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public WebInitDO webInit() {
+	public WebInitDO webInit() throws ItChatException {
 		return (WebInitDO)sendRequest(CmdTypeEnum.WEB_INIT);
 	}
 
@@ -251,7 +271,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public ShowMobileLoginDO showMobileLogin() {
+	public ShowMobileLoginDO showMobileLogin() throws ItChatException {
 		return (ShowMobileLoginDO)sendRequest(CmdTypeEnum.SHOW_MOBILE_LOGIN);
 	}
 
@@ -266,10 +286,10 @@ public class Shell {
 	 *
 	 * @param exitCallback callback after logged out, it contains calling of logout
 	 */
-	public void startReceiving( Callback<Object> exitCallback ) {
+	public void startReceiving( Runnable exitCallback ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( exitCallback != null ) {
-			callbackMapper.put("startReceiving_exitCallback", exitCallback);
+			callbackMapper.put("startReceiving_exitCallback", param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "startReceiving_exitCallback"));
 		} else {
 			callbackMapper.remove("startReceiving_exitCallback");
@@ -292,8 +312,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object getMsg() {
-		return sendRequest(CmdTypeEnum.GET_MSG);
+	public MsgDO getMsg() throws ItChatException {
+		return (MsgDO)sendRequest(CmdTypeEnum.GET_MSG);
 	}
 
 	/**
@@ -307,8 +327,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object logout() {
-		return sendRequest(CmdTypeEnum.LOGOUT);
+	public StatusResponseDO logout() throws ItChatException {
+		return (StatusResponseDO)sendRequest(CmdTypeEnum.LOGOUT);
 	}
 
 	/**
@@ -331,7 +351,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object updateChatroom( String userName, Boolean detailedMember ) {
+	public ContactDO updateChatroom( String userName, Boolean detailedMember )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
@@ -339,7 +360,7 @@ public class Shell {
 		if ( detailedMember != null ) {
 			pairs.add(new Pair<>("detailedMember", detailedMember ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.UPDATE_CHATROOM, pairs.toArray(new Pair[ 0 ]));
+		return (ContactDO)sendRequest(CmdTypeEnum.UPDATE_CHATROOM, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -353,12 +374,12 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object updateFriend( String userName ) {
+	public ContactDO updateFriend( String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
 		}
-		return sendRequest(CmdTypeEnum.UPDATE_FRIEND, pairs.toArray(new Pair[ 0 ]));
+		return (ContactDO)sendRequest(CmdTypeEnum.UPDATE_FRIEND, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -374,12 +395,12 @@ public class Shell {
 	 *
 	 * @return chatroomList will be returned
 	 */
-	public Object getContact( Boolean update ) {
+	public List<ContactDO> getContact( Boolean update ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( update != null ) {
 			pairs.add(new Pair<>("update", update ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.GET_CONTACT, pairs.toArray(new Pair[ 0 ]));
+		return (List<ContactDO>)sendRequest(CmdTypeEnum.GET_CONTACT, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -389,12 +410,12 @@ public class Shell {
 	 *
 	 * @return a list of friends' info dicts will be returned
 	 */
-	public Object getFriends( Boolean update ) {
+	public List<ContactDO> getFriends( Boolean update ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( update != null ) {
 			pairs.add(new Pair<>("update", update ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.GET_FRIENDS, pairs.toArray(new Pair[ 0 ]));
+		return (List<ContactDO>)sendRequest(CmdTypeEnum.GET_FRIENDS, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -405,7 +426,7 @@ public class Shell {
 	 *
 	 * @return a list of chatrooms' info dicts will be returned
 	 */
-	public Object getChatrooms( Boolean update, Boolean contactOnly ) {
+	public List<ContactDO> getChatrooms( Boolean update, Boolean contactOnly ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( update != null ) {
 			pairs.add(new Pair<>("update", update ? "True" : "False"));
@@ -413,7 +434,7 @@ public class Shell {
 		if ( contactOnly != null ) {
 			pairs.add(new Pair<>("contactOnly", contactOnly ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.GET_CHATROOMS, pairs.toArray(new Pair[ 0 ]));
+		return (List<ContactDO>)sendRequest(CmdTypeEnum.GET_CHATROOMS, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -423,12 +444,12 @@ public class Shell {
 	 *
 	 * @return a list of platforms' info dicts will be returned
 	 */
-	public Object getMps( Boolean update ) {
+	public List<ContactDO> getMps( Boolean update ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( update != null ) {
 			pairs.add(new Pair<>("update", update ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.GET_MPS, pairs.toArray(new Pair[ 0 ]));
+		return (List<ContactDO>)sendRequest(CmdTypeEnum.GET_MPS, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -439,15 +460,15 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object setAlias( String userName, String alias ) {
+	public StatusResponseDO setAlias( String userName, String alias ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
 		}
 		if ( alias != null ) {
-			pairs.add(new Pair<>("alias", "'" + alias + "'"));
+			pairs.add(new Pair<>("alias", "u'" + alias + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SET_ALIAS, pairs.toArray(new Pair[ 0 ]));
+		return (StatusResponseDO)sendRequest(CmdTypeEnum.SET_ALIAS, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -458,7 +479,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object setPinned( String userName, Boolean isPinned ) {
+	public StatusResponseDO setPinned( String userName, Boolean isPinned ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
@@ -466,7 +487,7 @@ public class Shell {
 		if ( isPinned != null ) {
 			pairs.add(new Pair<>("isPinned", isPinned ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.SET_PINNED, pairs.toArray(new Pair[ 0 ]));
+		return (StatusResponseDO)sendRequest(CmdTypeEnum.SET_PINNED, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -479,7 +500,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object addFriend( String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate ) {
+	public StatusResponseDO addFriend( String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
@@ -493,7 +515,7 @@ public class Shell {
 		if ( autoUpdate != null ) {
 			pairs.add(new Pair<>("autoUpdate", autoUpdate ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.ADD_FRIEND, pairs.toArray(new Pair[ 0 ]));
+		return (StatusResponseDO)sendRequest(CmdTypeEnum.ADD_FRIEND, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -513,7 +535,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object getHeadImg( String userName, String chatroomUserName, String picDir ) {
+	public HeadImgDO getHeadImg( String userName, String chatroomUserName, String picDir )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
 			pairs.add(new Pair<>("userName", "'" + userName + "'"));
@@ -527,7 +550,7 @@ public class Shell {
 			pairs.add(new Pair<>("picDir",
 				"'" + new File("src/main/resources/headImg.png").getAbsolutePath() + "'"));
 		}
-		return sendRequest(CmdTypeEnum.GET_HEAD_IMG, pairs.toArray(new Pair[ 0 ]));
+		return (HeadImgDO)sendRequest(CmdTypeEnum.GET_HEAD_IMG, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -542,7 +565,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object createChatroom( List<ContactDO> memberList, String topic ) {
+	public CreateChatroomDO createChatroom( List<ContactDO> memberList, String topic )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( memberList != null ) {
 			pairs.add(new Pair<>("memberList", JSON.toJSONString(memberList).replace("\"", "'")));
@@ -550,7 +574,7 @@ public class Shell {
 		if ( topic != null ) {
 			pairs.add(new Pair<>("topic", "'" + topic + "'"));
 		}
-		return sendRequest(CmdTypeEnum.CREATE_CHATROOM, pairs.toArray(new Pair[ 0 ]));
+		return (CreateChatroomDO)sendRequest(CmdTypeEnum.CREATE_CHATROOM, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -567,7 +591,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object setChatroomName( String chatroomUserName, String name ) {
+	public Object setChatroomName( String chatroomUserName, String name ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
 			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
@@ -594,7 +618,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object deleteMemberFromChatroom( String chatroomUserName, List<ContactDO> memberList ) {
+	public Object deleteMemberFromChatroom( String chatroomUserName, List<ContactDO> memberList )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
 			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
@@ -624,7 +649,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object addMemberIntoChatroom( String chatroomUserName, List<ContactDO> memberList, Boolean useInvitation ) {
+	public Object addMemberIntoChatroom( String chatroomUserName, List<ContactDO> memberList, Boolean useInvitation )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
 			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
@@ -647,7 +673,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendRawMsg( String msgType, String content, String toUserName ) {
+	public Object sendRawMsg( String msgType, String content, String toUserName )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msgType != null ) {
 			pairs.add(new Pair<>("msgType", "'" + msgType + "'"));
@@ -669,7 +696,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendMsg( String msg, String toUserName ) {
+	public Object sendMsg( String msg, String toUserName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
 			pairs.add(new Pair<>("msg", "'" + msg + "'"));
@@ -690,7 +717,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object uploadFile( String fileDir, Boolean isPicture, Boolean isVideo, String toUserName ) {
+	public Object uploadFile( String fileDir, Boolean isPicture, Boolean isVideo, String toUserName )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -716,7 +744,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendFile( String fileDir, String toUserName, String mediaId ) {
+	public Object sendFile( String fileDir, String toUserName, String mediaId )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -739,7 +768,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendImage( String fileDir, String toUserName, String mediaId ) {
+	public Object sendImage( String fileDir, String toUserName, String mediaId )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -762,7 +792,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendVideo( String fileDir, String toUserName, String mediaId ) {
+	public Object sendVideo( String fileDir, String toUserName, String mediaId )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -791,7 +822,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object send( String msg, String toUserName, String mediaId ) {
+	public Object send( String msg, String toUserName, String mediaId ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
 			pairs.add(new Pair<>("msg", "'" + msg + "'"));
@@ -814,7 +845,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object revoke( String msgId, String toUserName, String localId ) {
+	public Object revoke( String msgId, String toUserName, String localId ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msgId != null ) {
 			pairs.add(new Pair<>("msgId", "'" + msgId + "'"));
@@ -835,7 +866,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object dumpLoginStatus( String fileDir ) {
+	public Object dumpLoginStatus( String fileDir ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -859,7 +890,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object loadLoginStatus( String fileDir, Callback<Object> loginCallback, Callback<Object> exitCallback ) {
+	public Object loadLoginStatus( String fileDir, Runnable loginCallback, Runnable exitCallback )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
 			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
@@ -868,13 +900,13 @@ public class Shell {
 				"'" + new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
 		}
 		if ( loginCallback != null ) {
-			callbackMapper.put("loginStatus_loginCallback", loginCallback);
+			callbackMapper.put("loginStatus_loginCallback", param -> loginCallback.run());
 			pairs.add(new Pair<>("loginCallback", "loginStatus_loginCallback"));
 		} else {
 			callbackMapper.remove("loginStatus_loginCallback");
 		}
 		if ( exitCallback != null ) {
-			callbackMapper.put("loginStatus_exitCallback", exitCallback);
+			callbackMapper.put("loginStatus_exitCallback", param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "loginStatus_exitCallback"));
 		} else {
 			callbackMapper.remove("loginStatus_exitCallback");
@@ -896,7 +928,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object autoLogin( Boolean hotReload, String statusStorageDir, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback ) {
+	public Object autoLogin( Boolean hotReload, String statusStorageDir, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( hotReload != null ) {
 			pairs.add(new Pair<>("hotReload", hotReload ? "True" : "False"));
@@ -942,7 +975,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object configuredReply() {
+	public Object configuredReply() throws ItChatException {
 		return sendRequest(CmdTypeEnum.CONFIGURED_REPLY);
 	}
 
@@ -956,7 +989,8 @@ public class Shell {
 	 *
 	 * @return a specific decorator based on information given
 	 */
-	public Object msgRegister( String msgType, Boolean isFriendChat, Boolean isGroupChat, Boolean isMpChat ) {
+	public Object msgRegister( String msgType, Boolean isFriendChat, Boolean isGroupChat, Boolean isMpChat )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msgType != null ) {
 			pairs.add(new Pair<>("msgType", "'" + msgType + "'"));
@@ -981,7 +1015,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object run( Boolean debug, Boolean blockThread ) {
+	public Object run( Boolean debug, Boolean blockThread ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( debug != null ) {
 			pairs.add(new Pair<>("debug", debug ? "True" : "False"));
@@ -992,7 +1026,8 @@ public class Shell {
 		return sendRequest(CmdTypeEnum.RUN, pairs.toArray(new Pair[ 0 ]));
 	}
 
-	public Object searchFriends( String name, String userName, String remarkName, String wechatAccount ) {
+	public Object searchFriends( String name, String userName, String remarkName, String wechatAccount )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
 			pairs.add(new Pair<>("name", "'" + name + "'"));
@@ -1009,7 +1044,7 @@ public class Shell {
 		return sendRequest(CmdTypeEnum.SEARCH_FRIENDS, pairs.toArray(new Pair[ 0 ]));
 	}
 
-	public Object searchChatrooms( String name, String userName ) {
+	public Object searchChatrooms( String name, String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
 			pairs.add(new Pair<>("name", "'" + name + "'"));
@@ -1020,7 +1055,7 @@ public class Shell {
 		return sendRequest(CmdTypeEnum.SEARCH_CHATROOMS, pairs.toArray(new Pair[ 0 ]));
 	}
 
-	public Object searchMps( String name, String userName ) {
+	public Object searchMps( String name, String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
 			pairs.add(new Pair<>("name", "'" + name + "'"));

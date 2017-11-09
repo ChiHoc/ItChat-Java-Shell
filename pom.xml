@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.chiho</groupId>
-    <artifactId>itchat4java</artifactId>
+    <artifactId>itchat-java-shell</artifactId>
     <version>1.0</version>
     <build>
         <plugins>
