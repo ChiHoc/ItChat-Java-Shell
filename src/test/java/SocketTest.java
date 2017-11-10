@@ -5,9 +5,12 @@ import com.chiho.itchat4java.exceptions.ItChatException;
 import com.chiho.itchat4java.model.ContactDO;
 import com.chiho.itchat4java.model.CreateChatroomDO;
 import com.chiho.itchat4java.model.HeadImgDO;
+import com.chiho.itchat4java.model.MessageDO;
+import com.chiho.itchat4java.model.ModifyChatroomDO;
 import com.chiho.itchat4java.model.MsgDO;
 import com.chiho.itchat4java.model.ShowMobileLoginDO;
 import com.chiho.itchat4java.model.StatusResponseDO;
+import com.chiho.itchat4java.model.UploadFileDO;
 import com.chiho.itchat4java.model.WebInitDO;
 import com.chiho.itchat4java.utils.QRCodeTools;
 import java.util.ArrayList;
@@ -136,70 +139,64 @@ public class SocketTest {
 //					System.out.println(JSON.toJSON(imgDO));
 //				}
 //				break;
-//				case "createChatroom": {
-//					CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>(){{
+				case "createChatroom": {
+					CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>(){{
+						ContactDO contactDO = new ContactDO();
+						contactDO.setUserName("@633cead849896f858ed14ae242748fb9");
+						add(contactDO);
+						contactDO = new ContactDO();
+						contactDO.setUserName("filehelper");
+						add(contactDO);
+					}}, "topic");
+					System.out.println(JSON.toJSON(createChatroomDO));
+				}
+				break;
+//				case "setChatroomName": {
+//					ModifyChatroomDO modifyChatroomDO = shell.setChatroomName("chatroomUserName", "name");
+//					System.out.println(JSON.toJSON(modifyChatroomDO));
+//				}
+//				break;
+//				case "deleteMemberFromChatroom": {
+//					ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>(){{
 //						ContactDO contactDO = new ContactDO();
-//						contactDO.setUserName("@633cead849896f858ed14ae242748fb9");
-//						add(contactDO);
-//						contactDO = new ContactDO();
 //						contactDO.setUserName("filehelper");
 //						add(contactDO);
-//					}}, "topic");
-//					System.out.println(JSON.toJSON(createChatroomDO));
+//					}});
+//					System.out.println(JSON.toJSON(modifyChatroomDO));
 //				}
-				break;
-				case "setChatroomName": {
-					shell.setChatroomName("chatroomUserName", "name");
-				}
-				break;
-				case "deleteMemberFromChatroom": {
-					List<ContactDO> memberList = new ArrayList<>();
-					ContactDO contactDO = new ContactDO();
-					contactDO.setNickName("nickname");
-					contactDO.setAlias("alias");
-					memberList.add(contactDO);
-					contactDO = new ContactDO();
-					contactDO.setNickName("nickname");
-					contactDO.setAlias("alias");
-					memberList.add(contactDO);
-					shell.deleteMemberFromChatroom("chatroomUserName", memberList);
-				}
-				break;
-				case "addMemberIntoChatroom": {
-					List<ContactDO> memberList = new ArrayList<>();
-					ContactDO contactDO = new ContactDO();
-					contactDO.setNickName("nickname");
-					contactDO.setAlias("alias");
-					memberList.add(contactDO);
-					contactDO = new ContactDO();
-					contactDO.setNickName("nickname");
-					contactDO.setAlias("alias");
-					memberList.add(contactDO);
-					shell.addMemberIntoChatroom("chatroomUserName", memberList, true);
-				}
-				break;
-				case "sendRawMsg": {
-					shell.sendRawMsg("msgType", "content", "toUserName");
-				}
-				break;
+//				break;
+//				case "addMemberIntoChatroom": {
+//					ModifyChatroomDO modifyChatroomDO = shell.addMemberIntoChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>(){{
+//						ContactDO contactDO = new ContactDO();
+//						contactDO.setUserName("filehelper");
+//						add(contactDO);
+//					}}, false);
+//					System.out.println(JSON.toJSON(modifyChatroomDO));
+//				}
+//				break;
 				case "sendMsg": {
-					shell.sendMsg("msg", "toUserName");
+					MessageDO messageDO = shell.sendMsg("msg", "@633cead849896f858ed14ae242748fb9");
+					System.out.println(JSON.toJSON(messageDO));
 				}
 				break;
 				case "uploadFile": {
-					shell.uploadFile("src/main/resources/QR.png", true, false, "toUserName");
+					UploadFileDO uploadFileDO = shell.uploadFile("src/main/resources/QR.png", true, false, "toUserName");
+					System.out.println(JSON.toJSON(uploadFileDO));
 				}
 				break;
 				case "sendFile": {
-					shell.sendFile("src/main/resources/QR.png", "toUserName", "mediaId");
+					MessageDO messageDO = shell.sendFile("src/main/resources/QR.png", "toUserName", "mediaId");
+					System.out.println(JSON.toJSON(messageDO));
 				}
 				break;
 				case "sendImage": {
-					shell.sendImage("src/main/resources/QR.png", "toUserName", "mediaId");
+					MessageDO messageDO = shell.sendImage("src/main/resources/QR.png", "toUserName", "mediaId");
+					System.out.println(JSON.toJSON(messageDO));
 				}
 				break;
 				case "sendVideo": {
-					shell.sendVideo("src/main/resources/QR.png", "toUserName", "mediaId");
+					MessageDO messageDO = shell.sendVideo("src/main/resources/QR.png", "toUserName", "mediaId");
+					System.out.println(JSON.toJSON(messageDO));
 				}
 				break;
 				case "send": {

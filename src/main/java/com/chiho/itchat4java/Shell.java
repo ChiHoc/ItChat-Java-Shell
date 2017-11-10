@@ -1,6 +1,7 @@
 package com.chiho.itchat4java;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.chiho.itchat4java.enums.AddFriendStatusEnum;
 import com.chiho.itchat4java.enums.CmdTypeEnum;
@@ -9,11 +10,15 @@ import com.chiho.itchat4java.interfaces.Callback;
 import com.chiho.itchat4java.model.ContactDO;
 import com.chiho.itchat4java.model.CreateChatroomDO;
 import com.chiho.itchat4java.model.HeadImgDO;
+import com.chiho.itchat4java.model.MessageDO;
+import com.chiho.itchat4java.model.ModifyChatroomDO;
 import com.chiho.itchat4java.model.MsgDO;
 import com.chiho.itchat4java.model.QrCodeDO;
 import com.chiho.itchat4java.model.ShowMobileLoginDO;
 import com.chiho.itchat4java.model.StatusResponseDO;
+import com.chiho.itchat4java.model.UploadFileDO;
 import com.chiho.itchat4java.model.WebInitDO;
+import com.sun.istack.internal.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,12 +78,19 @@ public class Shell {
 					default: {
 						try {
 							String argStr = msgObj.getString("Args");
-							if ( argStr.contains("BaseResponse") ) {
-								callback.call(JSON.parseObject(argStr, StatusResponseDO.class));
-							} else if ( argStr.startsWith("[") ) {
-								callback.call(JSON.parseArray(argStr, Class.forName(typeEnum.getRespType())));
-							} else {
-								callback.call(JSON.parseObject(argStr, Class.forName(typeEnum.getRespType())));
+							try {
+								if ( argStr.startsWith("[") ) {
+									callback.call(JSON.parseArray(argStr, Class.forName(typeEnum.getRespType())));
+								} else {
+									callback.call(JSON.parseObject(argStr, Class.forName(typeEnum.getRespType())));
+								}
+							} catch (JSONException e) {
+								if ( argStr.contains("BaseResponse") ) {
+									callback.call(JSON.parseObject(argStr, StatusResponseDO.class));
+								} else {
+									e.printStackTrace();
+									callback.call(null);
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -149,10 +161,10 @@ public class Shell {
 			pairs.add(new Pair<>("enableCmdQR", enableCmdQR ? "True" : "False"));
 		}
 		if ( picDir != null ) {
-			pairs.add(new Pair<>("picDir", "'" + picDir + "'"));
+			pairs.add(new Pair<>("picDir", "u'" +picDir + "'"));
 		} else {
 			pairs.add(new Pair<>("picDir",
-				"'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
 			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
@@ -208,16 +220,16 @@ public class Shell {
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( uuid != null ) {
-			pairs.add(new Pair<>("uuid", "'" + uuid + "'"));
+			pairs.add(new Pair<>("uuid", "u'" +uuid + "'"));
 		}
 		if ( enableCmdQR != null ) {
 			pairs.add(new Pair<>("enableCmdQR", enableCmdQR ? "True" : "False"));
 		}
 		if ( picDir != null ) {
-			pairs.add(new Pair<>("picDir", "'" + picDir + "'"));
+			pairs.add(new Pair<>("picDir", "u'" +picDir + "'"));
 		} else {
 			pairs.add(new Pair<>("picDir",
-				"'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
 			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
@@ -351,11 +363,11 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public ContactDO updateChatroom( String userName, Boolean detailedMember )
+	public ContactDO updateChatroom( @NotNull String userName, Boolean detailedMember )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( detailedMember != null ) {
 			pairs.add(new Pair<>("detailedMember", detailedMember ? "True" : "False"));
@@ -374,10 +386,10 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public ContactDO updateFriend( String userName ) throws ItChatException {
+	public ContactDO updateFriend( @NotNull String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		return (ContactDO)sendRequest(CmdTypeEnum.UPDATE_FRIEND, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -426,7 +438,8 @@ public class Shell {
 	 *
 	 * @return a list of chatrooms' info dicts will be returned
 	 */
-	public List<ContactDO> getChatrooms( Boolean update, Boolean contactOnly ) throws ItChatException {
+	public List<ContactDO> getChatrooms( Boolean update, Boolean contactOnly )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( update != null ) {
 			pairs.add(new Pair<>("update", update ? "True" : "False"));
@@ -460,10 +473,11 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public StatusResponseDO setAlias( String userName, String alias ) throws ItChatException {
+	public StatusResponseDO setAlias( @NotNull String userName, @NotNull String alias )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( alias != null ) {
 			pairs.add(new Pair<>("alias", "u'" + alias + "'"));
@@ -479,10 +493,11 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public StatusResponseDO setPinned( String userName, Boolean isPinned ) throws ItChatException {
+	public StatusResponseDO setPinned( @NotNull String userName, Boolean isPinned )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( isPinned != null ) {
 			pairs.add(new Pair<>("isPinned", isPinned ? "True" : "False"));
@@ -500,17 +515,17 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public StatusResponseDO addFriend( String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate )
+	public StatusResponseDO addFriend( @NotNull String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( status != null ) {
 			pairs.add(new Pair<>("status", status.getCode()));
 		}
 		if ( verifyContent != null ) {
-			pairs.add(new Pair<>("verifyContent", "'" + verifyContent + "'"));
+			pairs.add(new Pair<>("verifyContent", "u'" +verifyContent + "'"));
 		}
 		if ( autoUpdate != null ) {
 			pairs.add(new Pair<>("autoUpdate", autoUpdate ? "True" : "False"));
@@ -539,16 +554,16 @@ public class Shell {
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( chatroomUserName != null ) {
-			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
+			pairs.add(new Pair<>("chatroomUserName", "u'" +chatroomUserName + "'"));
 		}
 		if ( picDir != null ) {
-			pairs.add(new Pair<>("picDir", "'" + picDir + "'"));
+			pairs.add(new Pair<>("picDir", "u'" +picDir + "'"));
 		} else {
 			pairs.add(new Pair<>("picDir",
-				"'" + new File("src/main/resources/headImg.png").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/headImg.png").getAbsolutePath() + "'"));
 		}
 		return (HeadImgDO)sendRequest(CmdTypeEnum.GET_HEAD_IMG, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -565,14 +580,14 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public CreateChatroomDO createChatroom( List<ContactDO> memberList, String topic )
+	public CreateChatroomDO createChatroom( @NotNull List<ContactDO> memberList, String topic )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( memberList != null ) {
 			pairs.add(new Pair<>("memberList", JSON.toJSONString(memberList).replace("\"", "'")));
 		}
 		if ( topic != null ) {
-			pairs.add(new Pair<>("topic", "'" + topic + "'"));
+			pairs.add(new Pair<>("topic", "u'" +topic + "'"));
 		}
 		return (CreateChatroomDO)sendRequest(CmdTypeEnum.CREATE_CHATROOM, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -591,15 +606,16 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object setChatroomName( String chatroomUserName, String name ) throws ItChatException {
+	public ModifyChatroomDO setChatroomName( @NotNull String chatroomUserName, @NotNull String name )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
-			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
+			pairs.add(new Pair<>("chatroomUserName", "u'" +chatroomUserName + "'"));
 		}
 		if ( name != null ) {
-			pairs.add(new Pair<>("name", "'" + name + "'"));
+			pairs.add(new Pair<>("name", "u'" +name + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SET_CHATROOM_NAME, pairs.toArray(new Pair[ 0 ]));
+		return (ModifyChatroomDO)sendRequest(CmdTypeEnum.SET_CHATROOM_NAME, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -618,16 +634,16 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object deleteMemberFromChatroom( String chatroomUserName, List<ContactDO> memberList )
+	public ModifyChatroomDO deleteMemberFromChatroom( @NotNull String chatroomUserName, @NotNull List<ContactDO> memberList )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
-			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
+			pairs.add(new Pair<>("chatroomUserName", "u'" +chatroomUserName + "'"));
 		}
 		if ( memberList != null ) {
 			pairs.add(new Pair<>("memberList", JSON.toJSONString(memberList).replace("\"", "'")));
 		}
-		return sendRequest(CmdTypeEnum.DELETE_MEMBER_FROM_CHATROOM, pairs.toArray(new Pair[ 0 ]));
+		return (ModifyChatroomDO)sendRequest(CmdTypeEnum.DELETE_MEMBER_FROM_CHATROOM, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -649,11 +665,11 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object addMemberIntoChatroom( String chatroomUserName, List<ContactDO> memberList, Boolean useInvitation )
+	public ModifyChatroomDO addMemberIntoChatroom( @NotNull String chatroomUserName, @NotNull List<ContactDO> memberList, Boolean useInvitation )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( chatroomUserName != null ) {
-			pairs.add(new Pair<>("chatroomUserName", "'" + chatroomUserName + "'"));
+			pairs.add(new Pair<>("chatroomUserName", "u'" +chatroomUserName + "'"));
 		}
 		if ( memberList != null ) {
 			pairs.add(new Pair<>("memberList", JSON.toJSONString(memberList).replace("\"", "'")));
@@ -661,31 +677,7 @@ public class Shell {
 		if ( useInvitation != null ) {
 			pairs.add(new Pair<>("useInvitation", useInvitation ? "True" : "False"));
 		}
-		return sendRequest(CmdTypeEnum.ADD_MEMBER_INTO_CHATROOM, pairs.toArray(new Pair[ 0 ]));
-	}
-
-	/**
-	 * many messages are sent in a common way
-	 *
-	 * @param msgType    type of message
-	 * @param content    should be unicode if there's non-ascii words in content
-	 * @param toUserName 'UserName' key of friend dict
-	 *
-	 * @return return
-	 */
-	public Object sendRawMsg( String msgType, String content, String toUserName )
-		throws ItChatException {
-		List<Pair> pairs = new ArrayList<>();
-		if ( msgType != null ) {
-			pairs.add(new Pair<>("msgType", "'" + msgType + "'"));
-		}
-		if ( content != null ) {
-			pairs.add(new Pair<>("content", "'" + content + "'"));
-		}
-		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
-		}
-		return sendRequest(CmdTypeEnum.SEND_RAW_MSG, pairs.toArray(new Pair[ 0 ]));
+		return (ModifyChatroomDO)sendRequest(CmdTypeEnum.ADD_MEMBER_INTO_CHATROOM, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -696,15 +688,15 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendMsg( String msg, String toUserName ) throws ItChatException {
+	public MessageDO sendMsg( String msg, @NotNull String toUserName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
-			pairs.add(new Pair<>("msg", "'" + msg + "'"));
+			pairs.add(new Pair<>("msg", "u'" + msg + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SEND_MSG, pairs.toArray(new Pair[ 0 ]));
+		return (MessageDO)sendRequest(CmdTypeEnum.SEND_MSG, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -717,11 +709,11 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object uploadFile( String fileDir, Boolean isPicture, Boolean isVideo, String toUserName )
+	public UploadFileDO uploadFile( @NotNull String fileDir, Boolean isPicture, Boolean isVideo, @NotNull String toUserName )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		}
 		if ( isPicture != null ) {
 			pairs.add(new Pair<>("isPicture", isPicture ? "True" : "False"));
@@ -730,9 +722,9 @@ public class Shell {
 			pairs.add(new Pair<>("isVideo", isVideo ? "True" : "False"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
-		return sendRequest(CmdTypeEnum.UPLOAD_FILE, pairs.toArray(new Pair[ 0 ]));
+		return (UploadFileDO)sendRequest(CmdTypeEnum.UPLOAD_FILE, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -744,19 +736,19 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendFile( String fileDir, String toUserName, String mediaId )
+	public MessageDO sendFile( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
 		if ( mediaId != null ) {
-			pairs.add(new Pair<>("mediaId", "'" + mediaId + "'"));
+			pairs.add(new Pair<>("mediaId", "u'" +mediaId + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SEND_FILE, pairs.toArray(new Pair[ 0 ]));
+		return (MessageDO)sendRequest(CmdTypeEnum.SEND_FILE, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -768,19 +760,19 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendImage( String fileDir, String toUserName, String mediaId )
+	public MessageDO sendImage( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
 		if ( mediaId != null ) {
-			pairs.add(new Pair<>("mediaId", "'" + mediaId + "'"));
+			pairs.add(new Pair<>("mediaId", "u'" +mediaId + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SEND_IMAGE, pairs.toArray(new Pair[ 0 ]));
+		return (MessageDO)sendRequest(CmdTypeEnum.SEND_IMAGE, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -792,19 +784,19 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object sendVideo( String fileDir, String toUserName, String mediaId )
+	public MessageDO sendVideo( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
 		if ( mediaId != null ) {
-			pairs.add(new Pair<>("mediaId", "'" + mediaId + "'"));
+			pairs.add(new Pair<>("mediaId", "u'" +mediaId + "'"));
 		}
-		return sendRequest(CmdTypeEnum.SEND_VIDEO, pairs.toArray(new Pair[ 0 ]));
+		return (MessageDO)sendRequest(CmdTypeEnum.SEND_VIDEO, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -822,16 +814,17 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object send( String msg, String toUserName, String mediaId ) throws ItChatException {
+	public Object send( @NotNull String msg, @NotNull String toUserName, String mediaId )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
-			pairs.add(new Pair<>("msg", "'" + msg + "'"));
+			pairs.add(new Pair<>("msg", "u'" +msg + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
 		if ( mediaId != null ) {
-			pairs.add(new Pair<>("mediaId", "'" + mediaId + "'"));
+			pairs.add(new Pair<>("mediaId", "u'" +mediaId + "'"));
 		}
 		return sendRequest(CmdTypeEnum.SEND, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -845,16 +838,17 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public Object revoke( String msgId, String toUserName, String localId ) throws ItChatException {
+	public Object revoke( @NotNull String msgId, @NotNull String toUserName, @NotNull String localId )
+		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msgId != null ) {
-			pairs.add(new Pair<>("msgId", "'" + msgId + "'"));
+			pairs.add(new Pair<>("msgId", "u'" +msgId + "'"));
 		}
 		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "'" + toUserName + "'"));
+			pairs.add(new Pair<>("toUserName", "u'" +toUserName + "'"));
 		}
 		if ( localId != null ) {
-			pairs.add(new Pair<>("localId", "'" + localId + "'"));
+			pairs.add(new Pair<>("localId", "u'" +localId + "'"));
 		}
 		return sendRequest(CmdTypeEnum.REVOKE, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -869,10 +863,10 @@ public class Shell {
 	public Object dumpLoginStatus( String fileDir ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		} else {
 			pairs.add(new Pair<>("fileDir",
-				"'" + new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
 		}
 		return sendRequest(CmdTypeEnum.DUMP_LOGIN_STATUS, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -894,10 +888,10 @@ public class Shell {
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
-			pairs.add(new Pair<>("fileDir", "'" + fileDir + "'"));
+			pairs.add(new Pair<>("fileDir", "u'" +fileDir + "'"));
 		} else {
 			pairs.add(new Pair<>("fileDir",
-				"'" + new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
 		}
 		if ( loginCallback != null ) {
 			callbackMapper.put("loginStatus_loginCallback", param -> loginCallback.run());
@@ -935,16 +929,16 @@ public class Shell {
 			pairs.add(new Pair<>("hotReload", hotReload ? "True" : "False"));
 		}
 		if ( statusStorageDir != null ) {
-			pairs.add(new Pair<>("statusStorageDir", "'" + statusStorageDir + "'"));
+			pairs.add(new Pair<>("statusStorageDir", "u'" +statusStorageDir + "'"));
 		}
 		if ( enableCmdQR != null ) {
 			pairs.add(new Pair<>("enableCmdQR", enableCmdQR ? "True" : "False"));
 		}
 		if ( picDir != null ) {
-			pairs.add(new Pair<>("picDir", "'" + picDir + "'"));
+			pairs.add(new Pair<>("picDir", "u'" +picDir + "'"));
 		} else {
 			pairs.add(new Pair<>("picDir",
-				"'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
+				"u'" +new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
 			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
@@ -993,7 +987,7 @@ public class Shell {
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msgType != null ) {
-			pairs.add(new Pair<>("msgType", "'" + msgType + "'"));
+			pairs.add(new Pair<>("msgType", "u'" +msgType + "'"));
 		}
 		if ( isFriendChat != null ) {
 			pairs.add(new Pair<>("isFriendChat", isFriendChat ? "True" : "False"));
@@ -1030,16 +1024,16 @@ public class Shell {
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
-			pairs.add(new Pair<>("name", "'" + name + "'"));
+			pairs.add(new Pair<>("name", "u'" +name + "'"));
 		}
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		if ( remarkName != null ) {
-			pairs.add(new Pair<>("remarkName", "'" + remarkName + "'"));
+			pairs.add(new Pair<>("remarkName", "u'" +remarkName + "'"));
 		}
 		if ( wechatAccount != null ) {
-			pairs.add(new Pair<>("wechatAccount", "'" + wechatAccount + "'"));
+			pairs.add(new Pair<>("wechatAccount", "u'" +wechatAccount + "'"));
 		}
 		return sendRequest(CmdTypeEnum.SEARCH_FRIENDS, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -1047,10 +1041,10 @@ public class Shell {
 	public Object searchChatrooms( String name, String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
-			pairs.add(new Pair<>("name", "'" + name + "'"));
+			pairs.add(new Pair<>("name", "u'" +name + "'"));
 		}
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		return sendRequest(CmdTypeEnum.SEARCH_CHATROOMS, pairs.toArray(new Pair[ 0 ]));
 	}
@@ -1058,10 +1052,10 @@ public class Shell {
 	public Object searchMps( String name, String userName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( name != null ) {
-			pairs.add(new Pair<>("name", "'" + name + "'"));
+			pairs.add(new Pair<>("name", "u'" +name + "'"));
 		}
 		if ( userName != null ) {
-			pairs.add(new Pair<>("userName", "'" + userName + "'"));
+			pairs.add(new Pair<>("userName", "u'" +userName + "'"));
 		}
 		return sendRequest(CmdTypeEnum.SEARCH_MPS, pairs.toArray(new Pair[ 0 ]));
 	}
