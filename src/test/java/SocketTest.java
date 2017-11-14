@@ -1,17 +1,12 @@
 import com.alibaba.fastjson.JSON;
 import com.chiho.itchat4java.Shell;
-import com.chiho.itchat4java.enums.AddFriendStatusEnum;
 import com.chiho.itchat4java.exceptions.ItChatException;
 import com.chiho.itchat4java.model.ContactDO;
 import com.chiho.itchat4java.model.CreateChatroomDO;
-import com.chiho.itchat4java.model.HeadImgDO;
 import com.chiho.itchat4java.model.MessageDO;
-import com.chiho.itchat4java.model.ModifyChatroomDO;
-import com.chiho.itchat4java.model.MsgDO;
-import com.chiho.itchat4java.model.ShowMobileLoginDO;
+import com.chiho.itchat4java.model.RevokeDO;
 import com.chiho.itchat4java.model.StatusResponseDO;
 import com.chiho.itchat4java.model.UploadFileDO;
-import com.chiho.itchat4java.model.WebInitDO;
 import com.chiho.itchat4java.utils.QRCodeTools;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,7 +135,7 @@ public class SocketTest {
 //				}
 //				break;
 				case "createChatroom": {
-					CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>(){{
+					CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>() {{
 						ContactDO contactDO = new ContactDO();
 						contactDO.setUserName("@633cead849896f858ed14ae242748fb9");
 						add(contactDO);
@@ -200,11 +195,14 @@ public class SocketTest {
 				}
 				break;
 				case "send": {
-					shell.send("message", "toUserName", "mediaId");
+					MessageDO messageDO = shell.send("message", "toUserName", "mediaId");
+					System.out.println(JSON.toJSON(messageDO));
 				}
 				break;
 				case "revoke": {
-					shell.revoke("msgId", "toUserName", "localId");
+					RevokeDO revokeDO = shell.revoke("5961489659369359345", "filehelper", "15105439316990");
+					System.out.println(JSON.toJSON(revokeDO));
+
 				}
 				break;
 				case "dumpLoginStatus": {
@@ -212,39 +210,31 @@ public class SocketTest {
 				}
 				break;
 				case "loadLoginStatus": {
-					shell.loadLoginStatus(null, () -> {
+					StatusResponseDO statusResponseDO = shell.loadLoginStatus(null, () -> {
 						System.out.println("loginCallback");
 					}, () -> {
 						System.out.println("exitCallback");
 					});
+					System.out.println(JSON.toJSON(statusResponseDO));
 				}
 				break;
 				case "autoLogin": {
 					shell.autoLogin(true, null, false, null, param -> QRCodeTools.showLoginCode(param.getQrcode()), () -> QRCodeTools.dismissLoginCode(), null);
 				}
 				break;
-				case "configuredReply": {
-					shell.configuredReply();
-				}
-				break;
-				case "msgRegister": {
-					shell.msgRegister("msgType", true, false, false);
-				}
-				break;
-				case "run": {
-					shell.run(true, true);
-				}
-				break;
 				case "searchFriends": {
-					shell.searchFriends("name", "userName", "remarkName", "wechatAccount");
+					List<ContactDO> contactList = shell.searchFriends("name", "userName", "remarkName", "wechatAccount");
+					System.out.println(JSON.toJSON(contactList));
 				}
 				break;
 				case "searchChatrooms": {
-					shell.searchChatrooms("name", "userName");
+					List<ContactDO> contactList = shell.searchChatrooms("name", "userName");
+					System.out.println(JSON.toJSON(contactList));
 				}
 				break;
 				case "searchMps": {
-					shell.searchMps("name", "userName");
+					List<ContactDO> contactList = shell.searchMps("name", "userName");
+					System.out.println(JSON.toJSON(contactList));
 				}
 				break;
 			}
