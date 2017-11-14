@@ -1,20 +1,17 @@
-package com.chiho.itchat4java.exceptions;
+package com.chiho.itchat.shell.model;
 
-import com.chiho.itchat4java.model.BaseResponseDO;
+import com.alibaba.fastjson.annotation.JSONField;
+import java.io.Serializable;
 
-public class ItChatException extends Exception {
+public class BaseResponseDO implements Serializable {
 
-	public ItChatException() {
-	}
+	private static final long serialVersionUID = 2484476236430464645L;
 
-	public ItChatException(BaseResponseDO response) {
-		this.errMsg = response.getErrMsg();
-		this.ret = response.getRet();
-		this.rawMsg = response.getRawMsg();
-	}
-
+	@JSONField( name = "ErrMsg" )
 	private String errMsg;
+	@JSONField( name = "Ret" )
 	private Integer ret;
+	@JSONField( name = "RawMsg" )
 	private String rawMsg;
 
 	public String getErrMsg() {

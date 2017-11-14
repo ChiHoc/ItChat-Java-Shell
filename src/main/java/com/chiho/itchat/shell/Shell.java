@@ -1,24 +1,27 @@
-package com.chiho.itchat4java;
+package com.chiho.itchat.shell;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.chiho.itchat4java.enums.AddFriendStatusEnum;
-import com.chiho.itchat4java.enums.CmdTypeEnum;
-import com.chiho.itchat4java.exceptions.ItChatException;
-import com.chiho.itchat4java.interfaces.Callback;
-import com.chiho.itchat4java.model.ContactDO;
-import com.chiho.itchat4java.model.CreateChatroomDO;
-import com.chiho.itchat4java.model.HeadImgDO;
-import com.chiho.itchat4java.model.MessageDO;
-import com.chiho.itchat4java.model.ModifyChatroomDO;
-import com.chiho.itchat4java.model.MsgDO;
-import com.chiho.itchat4java.model.QrCodeDO;
-import com.chiho.itchat4java.model.RevokeDO;
-import com.chiho.itchat4java.model.ShowMobileLoginDO;
-import com.chiho.itchat4java.model.StatusResponseDO;
-import com.chiho.itchat4java.model.UploadFileDO;
-import com.chiho.itchat4java.model.WebInitDO;
+import com.chiho.itchat.shell.enums.CmdTypeEnum;
+import com.chiho.itchat.shell.enums.MessageTypeEnum;
+import com.chiho.itchat.shell.model.ContactDO;
+import com.chiho.itchat.shell.model.GroupMessageDO;
+import com.chiho.itchat.shell.model.MessageDO;
+import com.chiho.itchat.shell.model.WebInitDO;
+import com.chiho.itchat.shell.enums.AddFriendStatusEnum;
+import com.chiho.itchat.shell.exceptions.ItChatException;
+import com.chiho.itchat.shell.interfaces.Callback;
+import com.chiho.itchat.shell.model.CreateChatroomDO;
+import com.chiho.itchat.shell.model.FetchMessageDO;
+import com.chiho.itchat.shell.model.HeadImgDO;
+import com.chiho.itchat.shell.model.SendMsgDO;
+import com.chiho.itchat.shell.model.ModifyChatroomDO;
+import com.chiho.itchat.shell.model.QrCodeDO;
+import com.chiho.itchat.shell.model.RevokeDO;
+import com.chiho.itchat.shell.model.ShowMobileLoginDO;
+import com.chiho.itchat.shell.model.StatusResponseDO;
+import com.chiho.itchat.shell.model.UploadFileDO;
 import com.sun.istack.internal.NotNull;
 import java.io.File;
 import java.util.ArrayList;
@@ -129,6 +132,7 @@ public class Shell {
 			});
 			client.sendString(message);
 			semaphore.acquire();
+
 			callbackMapper.remove(cmd.getType());
 			if ( respObj[ 0 ] instanceof StatusResponseDO ) {
 				StatusResponseDO statusResponseDO = (StatusResponseDO)respObj[ 0 ];
@@ -141,6 +145,15 @@ public class Shell {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * get itchat is alive
+	 *
+	 * @return isAlive
+	 */
+	public Boolean isAlive() throws ItChatException {
+		return (Boolean)sendRequest(CmdTypeEnum.IS_ALIVE);
 	}
 
 	/**
@@ -168,19 +181,19 @@ public class Shell {
 				"u'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
-			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
+			callbackMapper.put(CmdTypeEnum.LOGIN_QRCALLBACK.getType(), param -> qrCallback.call((QrCodeDO)param));
 			pairs.add(new Pair<>("qrCallback", "login_qrCallback"));
 		} else {
 			callbackMapper.remove("login_qrCallback");
 		}
 		if ( loginCallback != null ) {
-			callbackMapper.put("login_loginCallback", param -> loginCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGIN_LOGINCALLBACK.getType(), param -> loginCallback.run());
 			pairs.add(new Pair<>("loginCallback", "login_loginCallback"));
 		} else {
 			callbackMapper.remove("login_loginCallback");
 		}
 		if ( exitCallback != null ) {
-			callbackMapper.put("login_exitCallback", param -> exitCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGIN_EXITCALLBACK.getType(), param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "login_exitCallback"));
 		} else {
 			callbackMapper.remove("login_exitCallback");
@@ -233,7 +246,7 @@ public class Shell {
 				"u'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
-			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
+			callbackMapper.put(CmdTypeEnum.LOGIN_QRCALLBACK.getType(), param -> qrCallback.call((QrCodeDO)param));
 			pairs.add(new Pair<>("qrCallback", "login_qrCallback"));
 		} else {
 			callbackMapper.remove("login_qrCallback");
@@ -302,7 +315,7 @@ public class Shell {
 	public void startReceiving( Runnable exitCallback ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( exitCallback != null ) {
-			callbackMapper.put("startReceiving_exitCallback", param -> exitCallback.run());
+			callbackMapper.put(CmdTypeEnum.STARTRECEIVING_EXITCALLBACK.getType(), param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "startReceiving_exitCallback"));
 		} else {
 			callbackMapper.remove("startReceiving_exitCallback");
@@ -325,8 +338,8 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MsgDO getMsg() throws ItChatException {
-		return (MsgDO)sendRequest(CmdTypeEnum.GET_MSG);
+	public FetchMessageDO getMsg() throws ItChatException {
+		return (FetchMessageDO)sendRequest(CmdTypeEnum.GET_MSG);
 	}
 
 	/**
@@ -689,7 +702,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MessageDO sendMsg( String msg, @NotNull String toUserName ) throws ItChatException {
+	public SendMsgDO sendMsg( String msg, @NotNull String toUserName ) throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
 			pairs.add(new Pair<>("msg", "u'" + msg + "'"));
@@ -697,7 +710,7 @@ public class Shell {
 		if ( toUserName != null ) {
 			pairs.add(new Pair<>("toUserName", "u'" + toUserName + "'"));
 		}
-		return (MessageDO)sendRequest(CmdTypeEnum.SEND_MSG, pairs.toArray(new Pair[ 0 ]));
+		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND_MSG, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -737,7 +750,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MessageDO sendFile( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
+	public SendMsgDO sendFile( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
@@ -749,7 +762,7 @@ public class Shell {
 		if ( mediaId != null ) {
 			pairs.add(new Pair<>("mediaId", "u'" + mediaId + "'"));
 		}
-		return (MessageDO)sendRequest(CmdTypeEnum.SEND_FILE, pairs.toArray(new Pair[ 0 ]));
+		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND_FILE, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -761,7 +774,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MessageDO sendImage( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
+	public SendMsgDO sendImage( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
@@ -773,7 +786,7 @@ public class Shell {
 		if ( mediaId != null ) {
 			pairs.add(new Pair<>("mediaId", "u'" + mediaId + "'"));
 		}
-		return (MessageDO)sendRequest(CmdTypeEnum.SEND_IMAGE, pairs.toArray(new Pair[ 0 ]));
+		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND_IMAGE, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -785,7 +798,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MessageDO sendVideo( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
+	public SendMsgDO sendVideo( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( fileDir != null ) {
@@ -797,7 +810,7 @@ public class Shell {
 		if ( mediaId != null ) {
 			pairs.add(new Pair<>("mediaId", "u'" + mediaId + "'"));
 		}
-		return (MessageDO)sendRequest(CmdTypeEnum.SEND_VIDEO, pairs.toArray(new Pair[ 0 ]));
+		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND_VIDEO, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -815,7 +828,7 @@ public class Shell {
 	 *
 	 * @return return
 	 */
-	public MessageDO send( @NotNull String msg, @NotNull String toUserName, String mediaId )
+	public SendMsgDO send( @NotNull String msg, @NotNull String toUserName, String mediaId )
 		throws ItChatException {
 		List<Pair> pairs = new ArrayList<>();
 		if ( msg != null ) {
@@ -827,7 +840,7 @@ public class Shell {
 		if ( mediaId != null ) {
 			pairs.add(new Pair<>("mediaId", "u'" + mediaId + "'"));
 		}
-		return (MessageDO)sendRequest(CmdTypeEnum.SEND, pairs.toArray(new Pair[ 0 ]));
+		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND, pairs.toArray(new Pair[ 0 ]));
 	}
 
 	/**
@@ -895,13 +908,13 @@ public class Shell {
 				"u'" + new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
 		}
 		if ( loginCallback != null ) {
-			callbackMapper.put("loginStatus_loginCallback", param -> loginCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGINSTATUS_LOGINCALLBACK.getType(), param -> loginCallback.run());
 			pairs.add(new Pair<>("loginCallback", "loginStatus_loginCallback"));
 		} else {
 			callbackMapper.remove("loginStatus_loginCallback");
 		}
 		if ( exitCallback != null ) {
-			callbackMapper.put("loginStatus_exitCallback", param -> exitCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGINSTATUS_EXITCALLBACK.getType(), param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "loginStatus_exitCallback"));
 		} else {
 			callbackMapper.remove("loginStatus_exitCallback");
@@ -931,6 +944,9 @@ public class Shell {
 		}
 		if ( statusStorageDir != null ) {
 			pairs.add(new Pair<>("statusStorageDir", "u'" + statusStorageDir + "'"));
+		} else {
+			pairs.add(new Pair<>("statusStorageDir",
+				"u'" + new File("src/main/resources/login.sav").getAbsolutePath() + "'"));
 		}
 		if ( enableCmdQR != null ) {
 			pairs.add(new Pair<>("enableCmdQR", enableCmdQR ? "True" : "False"));
@@ -942,19 +958,19 @@ public class Shell {
 				"u'" + new File("src/main/resources/QR.png").getAbsolutePath() + "'"));
 		}
 		if ( qrCallback != null ) {
-			callbackMapper.put("login_qrCallback", param -> qrCallback.call((QrCodeDO)param));
+			callbackMapper.put(CmdTypeEnum.LOGIN_QRCALLBACK.getType(), param -> qrCallback.call((QrCodeDO)param));
 			pairs.add(new Pair<>("qrCallback", "login_qrCallback"));
 		} else {
 			callbackMapper.remove("login_qrCallback");
 		}
 		if ( loginCallback != null ) {
-			callbackMapper.put("login_loginCallback", param -> loginCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGIN_LOGINCALLBACK.getType(), param -> loginCallback.run());
 			pairs.add(new Pair<>("loginCallback", "login_loginCallback"));
 		} else {
 			callbackMapper.remove("login_loginCallback");
 		}
 		if ( exitCallback != null ) {
-			callbackMapper.put("login_exitCallback", param -> exitCallback.run());
+			callbackMapper.put(CmdTypeEnum.LOGIN_EXITCALLBACK.getType(), param -> exitCallback.run());
 			pairs.add(new Pair<>("exitCallback", "login_exitCallback"));
 		} else {
 			callbackMapper.remove("login_exitCallback");
@@ -1032,5 +1048,17 @@ public class Shell {
 			pairs.add(new Pair<>("userName", "u'" + userName + "'"));
 		}
 		return (List<ContactDO>)sendRequest(CmdTypeEnum.SEARCH_MPS, pairs.toArray(new Pair[ 0 ]));
+	}
+
+	public void addFriendMessageCallback(MessageTypeEnum messageType, Callback<MessageDO> callback) {
+		callbackMapper.put("friend_" + messageType.getType() + "Callback",  param -> callback.call((MessageDO)param));
+	}
+
+	public void addMpMessageCallback(MessageTypeEnum messageType, Callback<MessageDO> callback) {
+		callbackMapper.put("mp_" + messageType.getType() + "Callback",  param -> callback.call((MessageDO)param));
+	}
+
+	public void addGroupMessageCallback(MessageTypeEnum messageType, Callback<GroupMessageDO> callback) {
+		callbackMapper.put("group_" + messageType.getType() + "Callback",  param -> callback.call((GroupMessageDO)param));
 	}
 }

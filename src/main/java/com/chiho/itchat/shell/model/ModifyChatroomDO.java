@@ -1,4 +1,4 @@
-package com.chiho.itchat4java.model;
+package com.chiho.itchat.shell.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.chiho.itchat4java;
+package com.chiho.itchat.shell;
 
-import com.chiho.itchat4java.interfaces.Callback;
+import com.chiho.itchat.shell.interfaces.Callback;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,10 +10,12 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
+import org.apache.log4j.Logger;
 
 
 public class Client {
 
+	private final Logger logger = Logger.getLogger(Client.class);
 	private String serverIp;
 	private int port;
 	private Socket socket;
@@ -65,8 +67,7 @@ public class Client {
 			Client.this.stop();
 		}
 		socket = new Socket();
-		System.out.println("Client - Begin to connect");
-		System.out.println("Socket has been closed!");
+		logger.info("Client - Begin to connect");
 		try {
 			socket.connect(new InetSocketAddress(serverIp, port), 3000);
 		} catch (Exception e) {
@@ -97,12 +98,12 @@ public class Client {
 		try {
 			os = socket.getOutputStream();
 			PrintWriter pw = new PrintWriter(os);//将输出流包装为打印流
-			System.out.println("The sending data is: " + string);
+			logger.debug("The sending data is: " + string);
 			pw.write(string + "\r\n");
 			pw.flush();
 
 		} catch (IOException e) {
-			System.out.println("Error sending data!");
+			logger.error("Error sending data!");
 			e.printStackTrace();
 			Client.this.stop();
 			return false;
@@ -149,8 +150,9 @@ public class Client {
 						bufferedReader = new BufferedReader(new InputStreamReader(in));
 						String string;
 						while ( ( string = bufferedReader.readLine() ) != null ) {
-							System.out.println("The receiving data is: " + string);
-							receiveCallback.call(string);
+							logger.debug("The receiving data is: " + string);
+							final String resp = string;
+							new Thread(() -> receiveCallback.call(resp)).start();
 						}
 					} else {
 						try {
@@ -163,7 +165,7 @@ public class Client {
 						Thread.sleep(10);
 					}
 				} catch (Exception e) {
-					System.out.println("Error receiving data!");
+					logger.error("Error receiving data!");
 					e.printStackTrace();
 					Client.this.stop();
 				}

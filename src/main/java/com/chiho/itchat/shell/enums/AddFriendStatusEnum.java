@@ -1,4 +1,4 @@
-package com.chiho.itchat4java.enums;
+package com.chiho.itchat.shell.enums;
 
 /**
  * 确认添加好友Enum

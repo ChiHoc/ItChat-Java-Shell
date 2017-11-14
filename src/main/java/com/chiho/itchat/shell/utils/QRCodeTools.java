@@ -1,4 +1,4 @@
-package com.chiho.itchat4java.utils;
+package com.chiho.itchat.shell.utils;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -16,12 +16,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 public class QRCodeTools {
 
-	private static Logger logger = LoggerFactory.getLogger(QRCodeTools.class);
+	private static Logger logger = Logger.getLogger(QRCodeTools.class);
 	private static JFrame frameInstance;
 	private static int FRAME_WIDTH = 300;
 	private static int FRAME_HEIGHT = 400;

@@ -1,7 +1,7 @@
-package com.chiho.itchat4java.model;
+package com.chiho.itchat.shell.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.chiho.itchat4java.enums.SexEnum;
+import com.chiho.itchat.shell.enums.SexEnum;
 import java.io.Serializable;
 import java.util.List;
 

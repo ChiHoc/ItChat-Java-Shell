@@ -1,4 +1,4 @@
-package com.chiho.itchat4java.interfaces;
+package com.chiho.itchat.shell.interfaces;
 
 public interface Callback<P> {
 

@@ -1,13 +1,16 @@
-package com.chiho.itchat4java;
+package com.chiho.itchat.shell;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 public class Server {
 
+	private final Logger logger = Logger.getLogger(Server.class.toString());
 	private String scriptPath = "src/main/resources/pyserver.py";
 	private Process pyProcess;
 
@@ -52,14 +55,14 @@ public class Server {
 						BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
 						String string;
 						while ( ( string = bufferedReader.readLine() ) != null ) {
-							System.out.println(string);
+							logger.debug(string);
 						}
 					} else {
 						BufferedReader errorReader = new BufferedReader(new InputStreamReader(pyProcess.getErrorStream()));
 						String string;
 						if ( errorReader.ready() ) {
 							while ( ( string = errorReader.readLine() ) != null ) {
-								System.out.println(string);
+								logger.error(string);
 							}
 						}
 					}
