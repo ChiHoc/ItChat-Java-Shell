@@ -31,7 +31,6 @@ public enum CmdTypeEnum {
 	SEND_FILE("send_file", "com.chiho.itchat.shell.model.SendMsgDO"),
 	SEND_IMAGE("send_image", "com.chiho.itchat.shell.model.SendMsgDO"),
 	SEND_VIDEO("send_video", "com.chiho.itchat.shell.model.SendMsgDO"),
-	SEND("send", "com.chiho.itchat.shell.model.SendMsgDO"),
 	REVOKE("revoke", "com.chiho.itchat.shell.model.RevokeDO"),
 	DUMP_LOGIN_STATUS("dump_login_status", ""),
 	LOAD_LOGIN_STATUS("load_login_status", "com.chiho.itchat.shell.model.StatusResponseDO"),

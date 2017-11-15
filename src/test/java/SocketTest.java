@@ -178,7 +178,8 @@ public class SocketTest {
 				}
 				break;
 				case "getContact": {
-					shell.getContact(true);
+					ContactDO contactDO = shell.updateFriend("userName");
+					System.out.println(JSON.toJSON(contactDO));
 				}
 				break;
 				case "getFriends": {
@@ -273,11 +274,6 @@ public class SocketTest {
 				break;
 				case "sendVideo": {
 					SendMsgDO sendMsgDO = shell.sendVideo("src/main/resources/QR.png", "toUserName", "mediaId");
-					System.out.println(JSON.toJSON(sendMsgDO));
-				}
-				break;
-				case "send": {
-					SendMsgDO sendMsgDO = shell.send("message", "toUserName", "mediaId");
 					System.out.println(JSON.toJSON(sendMsgDO));
 				}
 				break;

@@ -814,36 +814,6 @@ public class Shell {
 	}
 
 	/**
-	 * wrapped function for all the sending functions
-	 *
-	 * @param msg        message starts with different string indicates different type
-	 *
-	 *                   - list of type string: ['@fil@', '@img@', '@msg@', '@vid@']
-	 *
-	 *                   - they are for file, image, plain text, video
-	 *
-	 *                   - if none of them matches, it will be sent like plain text
-	 * @param toUserName 'UserName' key of friend dict
-	 * @param mediaId    if set, uploading will not be repeated
-	 *
-	 * @return return
-	 */
-	public SendMsgDO send( @NotNull String msg, @NotNull String toUserName, String mediaId )
-		throws ItChatException {
-		List<Pair> pairs = new ArrayList<>();
-		if ( msg != null ) {
-			pairs.add(new Pair<>("msg", "u'" + msg + "'"));
-		}
-		if ( toUserName != null ) {
-			pairs.add(new Pair<>("toUserName", "u'" + toUserName + "'"));
-		}
-		if ( mediaId != null ) {
-			pairs.add(new Pair<>("mediaId", "u'" + mediaId + "'"));
-		}
-		return (SendMsgDO)sendRequest(CmdTypeEnum.SEND, pairs.toArray(new Pair[ 0 ]));
-	}
-
-	/**
 	 * revoke message with its and msgId
 	 *
 	 * @param msgId      message Id on server

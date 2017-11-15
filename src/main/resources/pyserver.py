@@ -159,7 +159,7 @@ def switch_cmd(cmd, argsDict):
             'Ret': -999, }})
 
     # Set listener after login
-    if cmd == 'auto_login' or cmd == 'login':
+    if cmd == 'auto_login' or cmd == 'login' or cmd == 'start_receiving':
         callbackThread = threading.Thread(target=itchat.run)
         callbackThread.setDaemon(True)
         callbackThread.start()
