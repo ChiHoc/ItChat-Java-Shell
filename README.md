@@ -157,7 +157,7 @@ shell.addMpMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
 
 > void login( Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback )
 
-调用登录微信，将自动获取uuid及二维码，可以用获取uuid、获取二维码、检查登录状态、初始化同步数据、手机显示登录标志、开始接收消息六个接口代替，🌰
+调用登录微信，将自动获取uuid及二维码，可以用[获取uuid](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#获取uuid)、[获取二维码](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#获取二维码)、[检查登录状态](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#检查登录状态)、[初始化同步数据](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#初始化同步数据)、[手机显示登录标志](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#手机显示登录标志)、[开始接收消息](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#开始接收消息)六个接口代替，🌰
 
 ```
 Shell shell = Shell.getInstance();
