@@ -32,13 +32,13 @@ public class SocketTest {
 				shell.autoLogin(true, null, false, null, param -> QRCodeTools.showLoginCode(param.getQrcode()), () -> QRCodeTools.dismissLoginCode(), null);
 			}
 			setupCallback();
-//			Scanner input = new Scanner(System.in);
-//			String cmd;
-//			do {
-//				cmd = input.next();
-//				switchCmd(cmd);
-//			} while ( !cmd.equals("#") );
-//			input.close();
+			Scanner input = new Scanner(System.in);
+			String cmd;
+			do {
+				cmd = input.next();
+				switchCmd(cmd);
+			} while ( !cmd.equals("#") );
+			input.close();
 		} catch (ItChatException e) {
 			e.printStackTrace();
 		}
@@ -46,13 +46,8 @@ public class SocketTest {
 
 	private static void setupCallback() {
 
-		shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> {
-			try {
-				shell.sendMsg(param.getContent(), param.getFromUserName());
-			} catch (ItChatException e) {
-				e.printStackTrace();
-			}
-		});
+		shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
+			"Friend_MAP: " + JSON.toJSON(param)));
 		shell.addFriendMessageCallback(MessageTypeEnum.MAP, param -> System.out.println(
 			"Friend_MAP: " + JSON.toJSON(param)));
 		shell.addFriendMessageCallback(MessageTypeEnum.CARD, param -> System.out.println(
