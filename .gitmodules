@@ -1,0 +1,3 @@
+[submodule "ItChat"]
+	path = ItChat
+	url = https://github.com/littlecodersh/ItChat.git
