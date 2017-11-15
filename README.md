@@ -1,6 +1,8 @@
-#ItChat-Java-Shell
+# ItChat-Java-Shell
 
-###来源
+Java用socket通信，封装python版ItChat
+
+## 来源
 
 由于目前在Java上移植ItChat的项目都存在移植不完全的问题，所以想自己实现一个java的版本。
 
@@ -10,51 +12,39 @@
 
 
 
-###ItChat
+## ItChat
 
 itchat是一个开源的微信个人号接口，使用python调用微信从未如此简单。
 
 使用不到三十行的代码，你就可以完成一个能够处理所有信息的微信机器人。
 
-当然，该api的使用远不止一个机器人，更多的功能等着你来发现，比如
-
-[这些]:http://python.jobbole.com/86532/
-
-该接口与公众号接口
-
-[itchatmp]: https://github.com/littlecodersh/itchatmp
-
-共享类似的操作方式，学习一次掌握两个工具。
-
 如今微信已经成为了个人社交的很大一部分，希望这个项目能够帮助你扩展你的个人的微信号、方便自己的生活。
 
-
-
-###目录结构
+## 目录结构
 
     .
     ├── README.md
     └── src
         ├── main
         |   ├── java/com/chiho/itchat/shell
-        |   |   ├── enums		//枚举
-        |   |   ├── exceptions		//自定义异常
-        |   |   ├── interfaces		//接口
-        |   |   ├── model		//数据模型
-        |   |   ├── utils		//工具
-        |   |   ├── Client.java		//建立客户端socket，建立接收消息和发送心跳包线程，发送消息等
-        |   |   ├── Server.java		//调用pyserver.py，重定向输出
-        |   |   └── Shell		//API封装，对参数和返回数据封箱解箱
+        |   |   ├── enums       //枚举
+        |   |   ├── exceptions      //自定义异常
+        |   |   ├── interfaces      //接口
+        |   |   ├── model       //数据模型
+        |   |   ├── utils       //工具
+        |   |   ├── Client.java     //建立客户端socket，建立接收消息和发送心跳包线程，发送消息等
+        |   |   ├── Server.java     //调用pyserver.py，重定向输出
+        |   |   └── Shell       //API封装，对参数和返回数据封箱解箱
         |   └── resources
         |       ├── log4j.properties
-        |       └── pyserver.py		
+        |       └── pyserver.py     
         |           //python版ItChat封装，包含监听端口、收发消息等
         └── test/java
-                └── SocketTest.java 	//API使用demo
+                └── SocketTest.java     //API使用demo
 
 
 
-###通讯
+## 通讯
 
            +---------------------------------+     +------------------------------------+  
            |              python             |     |                Java                | 
@@ -91,9 +81,9 @@ itchat是一个开源的微信个人号接口，使用python调用微信从未�
 
 
 
-###API
+## API
 
-####启动server和client
+### 启动server和client
 
 > boolean start()
 
@@ -106,7 +96,7 @@ shell.start();
 
 
 
-#### 添加好友消息监听
+### 添加好友消息监听
 
 > void addFriendMessageCallback(MessageTypeEnum messageType, Callback<MessageDO> callback)
 
@@ -115,7 +105,7 @@ shell.start();
 ```
 Shell shell = Shell.getInstance()
 shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
-			"Friend_MAP: " + JSON.toJSON(param)));
+            "Friend_MAP: " + JSON.toJSON(param)));
 ```
 
 |     参数名     |                    类型                    |  备注  |
@@ -125,7 +115,7 @@ shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println
 
 
 
-#### 添加群聊消息监听
+### 添加群聊消息监听
 
 > void addGroupMessageCallback(MessageTypeEnum messageType, Callback<MessageDO> callback)
 
@@ -144,7 +134,7 @@ shell.addGroupMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
 
 
 
-#### 添加公众号消息监听
+### 添加公众号消息监听
 
 > void addMpMessageCallback(MessageTypeEnum messageType, Callback<MessageDO> callback)
 
@@ -163,16 +153,16 @@ shell.addMpMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
 
 
 
-#### 登录
+### 登录
 
 > void login( Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback )
 
-调用登录微信，将自动获取uuid及二维码，可以用获取uuid、获取二维码、检查登录状态三个接口代替，🌰
+调用登录微信，将自动获取uuid及二维码，可以用获取uuid、获取二维码、检查登录状态、初始化同步数据、手机显示登录标志、开始接收消息六个接口代替，🌰
 
 ```
 Shell shell = Shell.getInstance();
 shell.login(
-	false,
+    false,
     null, 
     qrCodeResponse -> System.out.println(JSON.toJSON(qrCodeResponse)), 
     () -> System.out.println("loginCallback"), 
@@ -189,7 +179,7 @@ shell.login(
 
 
 
-#### 获取uuid
+### 获取uuid
 
 > String getQRUuid()
 
@@ -202,7 +192,7 @@ uuid = shell.getQRUuid();
 
 
 
-####获取二维码
+### 获取二维码
 
 > String getQR( String uuid, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback )
 
@@ -222,7 +212,7 @@ shell.getQR(uuid, false, null, qrCodeResponse -> System.out.println(JSON.toJSON(
 
 
 
-####检查登录状态
+### 检查登录状态
 
 > String checkLogin( String uuid )
 
@@ -239,7 +229,7 @@ String statusCode = shell.checkLogin(uuid);
 
 
 
-####初始化同步数据
+### 初始化同步数据
 
 > WebInitDO webInit()
 
@@ -252,7 +242,7 @@ WebInitDO webInitDO = shell.webInit();
 
 
 
-#### 手机显示登录标志
+### 手机显示登录标志
 
 > ShowMobileLoginDO showMobileLogin()
 
@@ -265,7 +255,7 @@ ShowMobileLoginDO showMobileLoginDO = shell.showMobileLogin();
 
 
 
-#### 开始接收消息
+### 开始接收消息
 
 > void startReceiving( Runnable exitCallback )
 
@@ -282,7 +272,7 @@ shell.startReceiving(() -> System.out.println("exitCallback"));
 
 
 
-#### 获取消息
+### 获取消息
 
 > FetchMessageDO getMsg()
 
@@ -295,7 +285,7 @@ FetchMessageDO fetchMessageDO = shell.getMsg();
 
 
 
-#### 登出
+### 登出
 
 > StatusResponseDO logout()
 
@@ -308,7 +298,7 @@ StatusResponseDO response = shell.logout();
 
 
 
-#### 更新群聊
+### 更新群聊
 
 > ContactDO updateChatroom( @NotNull String userName, Boolean detailedMember )
 
@@ -326,7 +316,7 @@ ContactDO contactDO = shell.updateChatroom("@@35sdaf902lsddqfscbnmds", true);
 
 
 
-#### 更新好友
+### 更新好友
 
 > ContactDO updateFriend( @NotNull String userName )
 
@@ -343,7 +333,7 @@ ContactDO contactDO = shell.updateFriend("@fdguiwjnur3jds832vd");
 
 
 
-#### 获取联系人
+### 获取联系人
 
 > List<ContactDO> getContact( Boolean update )
 
@@ -362,7 +352,7 @@ List<ContactDO> contactList = shell.getContact(false);
 
 
 
-#### 获取好友列表
+### 获取好友列表
 
 > List<ContactDO> getFriends( Boolean update )
 
@@ -379,7 +369,7 @@ List<ContactDO> contactList = shell.getFriends(false);
 
 
 
-#### 获取公众号列表
+### 获取公众号列表
 
 > List<ContactDO> getMps( Boolean update )
 
@@ -396,7 +386,7 @@ List<ContactDO> contactList = shell.getMps(false);
 
 
 
-#### 设置备注
+### 设置备注
 
 > StatusResponseDO setAlias( @NotNull String userName, @NotNull String remark )
 
@@ -414,7 +404,7 @@ StatusResponseDO responseDO = shell.setAlias("@fdguiwjnur3jds832vd", "自动备�
 
 
 
-####置顶好友
+### 置顶好友
 
 > StatusResponseDO setPinned( @NotNull String userName, Boolean isPinned )
 
@@ -432,7 +422,7 @@ StatusResponseDO responseDO = shell.setPinned("@fdguiwjnur3jds832vd", true);
 
 
 
-#### 添加好友
+### 添加好友
 
 > StatusResponseDO addFriend( @NotNull String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate )
 
@@ -452,7 +442,7 @@ StatusResponseDO responseDO = shell.addFriend("@fdguiwjnur3jds832vd", AddFriendS
 
 
 
-#### 获取头像
+### 获取头像
 
 > StatusResponseDO addFriend( @NotNull String userName, AddFriendStatusEnum status, String verifyContent, Boolean autoUpdate )
 
@@ -471,7 +461,7 @@ HeadImgDO getHeadImg( String userName, String chatroomUserName, String picDir );
 
 
 
-#### 建立群聊
+### 建立群聊
 
 > CreateChatroomDO createChatroom( @NotNull List<ContactDO> memberList, String topic )
 
@@ -480,13 +470,13 @@ HeadImgDO getHeadImg( String userName, String chatroomUserName, String picDir );
 ```
 Shell shell = Shell.getInstance();
 CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>() {{
-						ContactDO contactDO = new ContactDO();
-						contactDO.setUserName("@633cead849896f858ed14ae242748fb9");
-						add(contactDO);
-						contactDO = new ContactDO();
-						contactDO.setUserName("@348di893298f83id8uf29fsd3fdf");
-						add(contactDO);
-					}}, "topic");
+                        ContactDO contactDO = new ContactDO();
+                        contactDO.setUserName("@633cead849896f858ed14ae242748fb9");
+                        add(contactDO);
+                        contactDO = new ContactDO();
+                        contactDO.setUserName("@348di893298f83id8uf29fsd3fdf");
+                        add(contactDO);
+                    }}, "topic");
 ```
 
 |    参数名     |       类型        |                   备注                   |
@@ -496,7 +486,7 @@ CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO
 
 
 
-#### 修改群聊名
+### 修改群聊名
 
 > ModifyChatroomDO setChatroomName( @NotNull String chatroomUserName, @NotNull String name )
 
@@ -514,7 +504,7 @@ ModifyChatroomDO modifyChatroomDO = shell.setChatroomName("@@4234abs8987987asd98
 
 
 
-#### 踢出群聊成员
+### 踢出群聊成员
 
 > ModifyChatroomDO deleteMemberFromChatroom( @NotNull String chatroomUserName, @NotNull List<ContactDO> memberList )
 
@@ -523,10 +513,10 @@ ModifyChatroomDO modifyChatroomDO = shell.setChatroomName("@@4234abs8987987asd98
 ```
 Shell shell = Shell.getInstance();
 ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>() {{
-						ContactDO contactDO = new ContactDO();
-						contactDO.setUserName("@4234abs8987987asd98w98989");
-						add(contactDO);
-					}});
+                        ContactDO contactDO = new ContactDO();
+                        contactDO.setUserName("@4234abs8987987asd98w98989");
+                        add(contactDO);
+                    }});
 ```
 
 |       参数名        |       类型        |         备注         |
@@ -536,7 +526,7 @@ ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86
 
 
 
-#### 添加群聊成员
+### 添加群聊成员
 
 > ModifyChatroomDO addMemberIntoChatroom( @NotNull String chatroomUserName, @NotNull List<ContactDO> memberList, Boolean useInvitation )
 
@@ -545,10 +535,10 @@ ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86
 ```
 Shell shell = Shell.getInstance();
 ModifyChatroomDO modifyChatroomDO = shell.addMemberIntoChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>() {{
-						ContactDO contactDO = new ContactDO();
-						contactDO.setUserName("filehelper");
-						add(contactDO);
-					}}, false);
+                        ContactDO contactDO = new ContactDO();
+                        contactDO.setUserName("filehelper");
+                        add(contactDO);
+                    }}, false);
 ```
 
 |       参数名        |       类型        |                    备注                    |
@@ -559,7 +549,7 @@ ModifyChatroomDO modifyChatroomDO = shell.addMemberIntoChatroom("@@bd79da9a86aa4
 
 
 
-#### 发送文字消息
+### 发送文字消息
 
 > SendMsgDO sendMsg( String msg, @NotNull String toUserName )
 
@@ -577,7 +567,7 @@ SendMsgDO sendMsgDO = shell.sendMsg("msg", "@633cead849896f858ed14ae242748fb9");
 
 
 
-#### 上传文件
+### 上传文件
 
 > UploadFileDO uploadFile( @NotNull String fileDir, Boolean isPicture, Boolean isVideo, @NotNull String toUserName )
 
@@ -597,7 +587,7 @@ UploadFileDO uploadFileDO = shell.uploadFile("xxx/a.jpg", true, false, "@4234abs
 
 
 
-#### 发送文件消息
+### 发送文件消息
 
 > SendMsgDO sendFile( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 
@@ -616,7 +606,7 @@ SendMsgDO sendMsgDO = shell.sendFile("xxx/a.jpg", "@4234abs8987987asd98w98989", 
 
 
 
-#### 发送图片消息
+### 发送图片消息
 
 > SendMsgDO sendImage( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 
@@ -635,7 +625,7 @@ SendMsgDO sendMsgDO = shell.sendImage("sxxx/a.jpg", "@4234abs8987987asd98w98989"
 
 
 
-#### 发送视频消息
+### 发送视频消息
 
 > SendMsgDO sendVideo( @NotNull String fileDir, @NotNull String toUserName, String mediaId )
 
@@ -654,7 +644,7 @@ SendMsgDO sendMsgDO = shell.sendVideo("sxxx/a.mp4", "@4234abs8987987asd98w98989"
 
 
 
-#### 撤回消息
+### 撤回消息
 
 > RevokeDO revoke( @NotNull String msgId, @NotNull String toUserName, @NotNull String localId )
 
@@ -673,7 +663,7 @@ RevokeDO revokeDO = shell.revoke("5961489659369359345", "filehelper", "151054393
 
 
 
-#### 自动登录
+### 自动登录
 
 > void autoLogin( Boolean hotReload, String statusStorageDir, Boolean enableCmdQR, String picDir, Callback<QrCodeDO> qrCallback, Runnable loginCallback, Runnable exitCallback )
 
@@ -696,7 +686,7 @@ shell.autoLogin(true, null, false, null, param -> QRCodeTools.showLoginCode(para
 
 
 
-#### dump登录状态
+### dump登录状态
 
 > void dumpLoginStatus( String fileDir )
 
@@ -713,7 +703,7 @@ shell.dumpLoginStatus(null);
 
 
 
-#### 加载登录状态
+### 加载登录状态
 
 > StatusResponseDO loadLoginStatus( String fileDir, Runnable loginCallback, Runnable exitCallback )
 
@@ -722,10 +712,10 @@ shell.dumpLoginStatus(null);
 ```
 Shell shell = Shell.getInstance();
 StatusResponseDO statusResponseDO = shell.loadLoginStatus(null, () -> {
-						System.out.println("loginCallback");
-					}, () -> {
-						System.out.println("exitCallback");
-					});
+                        System.out.println("loginCallback");
+                    }, () -> {
+                        System.out.println("exitCallback");
+                    });
 ```
 
 |      参数名      |    类型    |                    备注                    |
@@ -736,7 +726,7 @@ StatusResponseDO statusResponseDO = shell.loadLoginStatus(null, () -> {
 
 
 
-#### 搜索好友
+### 搜索好友
 
 > List<ContactDO> searchFriends( String name, String userName, String remarkName, String wechatAccount )
 
@@ -756,7 +746,7 @@ List<ContactDO> contactList = shell.searchFriends("手机传输助手", "filehel
 
 
 
-#### 搜索群聊
+### 搜索群聊
 
 > List<ContactDO> searchChatrooms( String name, String userName )
 
@@ -774,7 +764,7 @@ List<ContactDO> contactList = shell.searchChatrooms("广场舞", "@@sad9s8d98sd9
 
 
 
-#### 搜索公众号
+### 搜索公众号
 
 > List<ContactDO> searchMps( String name, String userName )
 
