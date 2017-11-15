@@ -55,8 +55,8 @@ public class Shell {
 	}
 
 	public boolean start() {
-//		return runService() && runClient();
-		return runClient();
+		return runService() && runClient();
+//		return runClient();
 	}
 
 	private boolean runService() {

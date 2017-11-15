@@ -77,7 +77,7 @@ public class Client {
 		isConnected = true;
 
 		lastSendTime = System.currentTimeMillis();
-//		new Thread(new KeepAliveWatchDog()).start();  //保持长连接的线程，每隔2秒项服务器发一个一个保持连接的心跳消息
+		new Thread(new KeepAliveWatchDog()).start();  //保持长连接的线程，每隔2秒项服务器发一个一个保持连接的心跳消息
 		new Thread(new ReceiveWatchDog()).start();    //接受消息的线程，处理消息
 		return true;
 	}
@@ -98,7 +98,9 @@ public class Client {
 		try {
 			os = socket.getOutputStream();
 			PrintWriter pw = new PrintWriter(os);//将输出流包装为打印流
-			logger.debug("The sending data is: " + string);
+			if ( !string.contains("KeepAlive") ) {
+				logger.debug("The sending data is: " + string);
+			}
 			pw.write(string + "\r\n");
 			pw.flush();
 

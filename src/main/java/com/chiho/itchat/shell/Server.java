@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
 
 public class Server {
 
@@ -22,6 +21,7 @@ public class Server {
 		try {
 			File file = new File(scriptPath);
 			ProcessBuilder processBuilder = new ProcessBuilder("python", file.getAbsolutePath());
+			processBuilder.redirectErrorStream(true);
 			pyProcess = processBuilder.start();
 			new Thread(new ServerOutputWatchDog()).start();
 			// Destory python server before exit
@@ -34,8 +34,8 @@ public class Server {
 					}
 				}
 			});
-			Thread.sleep(1000);
-		} catch (IOException|InterruptedException e) {
+			Thread.sleep(2000);
+		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 			return false;
 		}
