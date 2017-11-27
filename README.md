@@ -89,7 +89,7 @@ Java用socket通信，封装python版ItChat
 
 使用任何其他API之前必须先调用start()，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.start();
 ```
@@ -102,7 +102,7 @@ shell.start();
 
 添加监听好友发送的消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance()
 shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
             "Friend_MAP: " + JSON.toJSON(param)));
@@ -121,7 +121,7 @@ shell.addFriendMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println
 
 添加监听群聊发送的消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.addGroupMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
    "Group_TEXT: " + JSON.toJSON(param)));
@@ -140,7 +140,7 @@ shell.addGroupMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
 
 添加监听群聊发送的消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.addMpMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
    "Group_TEXT: " + JSON.toJSON(param)));
@@ -159,7 +159,7 @@ shell.addMpMessageCallback(MessageTypeEnum.TEXT, param -> System.out.println(
 
 调用登录微信，将自动获取uuid及二维码，可以用[获取uuid](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#获取uuid)、[获取二维码](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#获取二维码)、[检查登录状态](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#检查登录状态)、[初始化同步数据](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#初始化同步数据)、[手机显示登录标志](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#手机显示登录标志)、[开始接收消息](https://github.com/ChiHoc/ItChat-Java-Shell/blob/master/README.md#开始接收消息)六个接口代替，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.login(
     false,
@@ -185,7 +185,7 @@ shell.login(
 
 获取uuid（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 uuid = shell.getQRUuid();
 ```
@@ -198,7 +198,7 @@ uuid = shell.getQRUuid();
 
 根据uuid获取二维码（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance()
 shell.getQR(uuid, false, null, qrCodeResponse -> System.out.println(JSON.toJSON(qrCodeResponse)));
 ```
@@ -218,7 +218,7 @@ shell.getQR(uuid, false, null, qrCodeResponse -> System.out.println(JSON.toJSON(
 
 根据uuid检查登录状态（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 String statusCode = shell.checkLogin(uuid);
 ```
@@ -235,7 +235,7 @@ String statusCode = shell.checkLogin(uuid);
 
 初始化同步数据，返回用户信息，好友列表，syncKey（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 WebInitDO webInitDO = shell.webInit();
 ```
@@ -248,7 +248,7 @@ WebInitDO webInitDO = shell.webInit();
 
 手机显示登录标志，即使不手动调用，在之后调用其他方法也会自动在手机上显示网页登录标志（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ShowMobileLoginDO showMobileLoginDO = shell.showMobileLogin();
 ```
@@ -261,7 +261,7 @@ ShowMobileLoginDO showMobileLoginDO = shell.showMobileLogin();
 
 开始接收消息，可以使用轮询调用获取消息接口代替（非自定义登录不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.startReceiving(() -> System.out.println("exitCallback"));
 ```
@@ -278,7 +278,7 @@ shell.startReceiving(() -> System.out.println("exitCallback"));
 
 获取最新消息（非自定义接收消息不用调用），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 FetchMessageDO fetchMessageDO = shell.getMsg();
 ```
@@ -291,7 +291,7 @@ FetchMessageDO fetchMessageDO = shell.getMsg();
 
 登出，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 StatusResponseDO response = shell.logout();
 ```
@@ -304,7 +304,7 @@ StatusResponseDO response = shell.logout();
 
 更新群聊，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ContactDO contactDO = shell.updateChatroom("@@35sdaf902lsddqfscbnmds", true);
 ```
@@ -322,7 +322,7 @@ ContactDO contactDO = shell.updateChatroom("@@35sdaf902lsddqfscbnmds", true);
 
 更新好友，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ContactDO contactDO = shell.updateFriend("@fdguiwjnur3jds832vd");
 ```
@@ -341,7 +341,7 @@ ContactDO contactDO = shell.updateFriend("@fdguiwjnur3jds832vd");
 
 虽然是getContact，但是只是返回群聊列表（不建议自己调用，使用其他获取接口代替），🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.getContact(false);
 ```
@@ -358,7 +358,7 @@ List<ContactDO> contactList = shell.getContact(false);
 
 获取好友列表，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.getFriends(false);
 ```
@@ -375,7 +375,7 @@ List<ContactDO> contactList = shell.getFriends(false);
 
 获取公众号列表，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.getMps(false);
 ```
@@ -392,7 +392,7 @@ List<ContactDO> contactList = shell.getMps(false);
 
 设置备注，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 StatusResponseDO responseDO = shell.setAlias("@fdguiwjnur3jds832vd", "自动备注");
 ```
@@ -410,7 +410,7 @@ StatusResponseDO responseDO = shell.setAlias("@fdguiwjnur3jds832vd", "自动备�
 
 置顶好友，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 StatusResponseDO responseDO = shell.setPinned("@fdguiwjnur3jds832vd", true);
 ```
@@ -428,7 +428,7 @@ StatusResponseDO responseDO = shell.setPinned("@fdguiwjnur3jds832vd", true);
 
 添加好友，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 StatusResponseDO responseDO = shell.addFriend("@fdguiwjnur3jds832vd", AddFriendStatusEnum.ADD, "verifyContent", true);
 ```
@@ -448,7 +448,7 @@ StatusResponseDO responseDO = shell.addFriend("@fdguiwjnur3jds832vd", AddFriendS
 
 获取头像，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 HeadImgDO getHeadImg( String userName, String chatroomUserName, String picDir );
 ```
@@ -467,7 +467,7 @@ HeadImgDO getHeadImg( String userName, String chatroomUserName, String picDir );
 
 建立群聊，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO>() {{
                         ContactDO contactDO = new ContactDO();
@@ -492,7 +492,7 @@ CreateChatroomDO createChatroomDO = shell.createChatroom(new ArrayList<ContactDO
 
 修改群聊名，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ModifyChatroomDO modifyChatroomDO = shell.setChatroomName("@@4234abs8987987asd98w98989", "name");
 ```
@@ -510,7 +510,7 @@ ModifyChatroomDO modifyChatroomDO = shell.setChatroomName("@@4234abs8987987asd98
 
 踢出群聊成员，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>() {{
                         ContactDO contactDO = new ContactDO();
@@ -532,7 +532,7 @@ ModifyChatroomDO modifyChatroomDO = shell.deleteMemberFromChatroom("@@bd79da9a86
 
 添加群聊成员，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 ModifyChatroomDO modifyChatroomDO = shell.addMemberIntoChatroom("@@bd79da9a86aa407fef4faf575dcff5cfde953b449e6af9a181fa5dcf0f7050db", new ArrayList<ContactDO>() {{
                         ContactDO contactDO = new ContactDO();
@@ -555,7 +555,7 @@ ModifyChatroomDO modifyChatroomDO = shell.addMemberIntoChatroom("@@bd79da9a86aa4
 
 发送文字消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 SendMsgDO sendMsgDO = shell.sendMsg("msg", "@633cead849896f858ed14ae242748fb9");
 ```
@@ -573,7 +573,7 @@ SendMsgDO sendMsgDO = shell.sendMsg("msg", "@633cead849896f858ed14ae242748fb9");
 
 上传文件消息，微信的发送视频图片等消息，需要先上传文件到服务器，获取mediaId，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 UploadFileDO uploadFileDO = shell.uploadFile("xxx/a.jpg", true, false, "@4234abs8987987asd98w98989");
 ```
@@ -593,7 +593,7 @@ UploadFileDO uploadFileDO = shell.uploadFile("xxx/a.jpg", true, false, "@4234abs
 
 发送文件消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 SendMsgDO sendMsgDO = shell.sendFile("xxx/a.jpg", "@4234abs8987987asd98w98989", null);
 ```
@@ -612,7 +612,7 @@ SendMsgDO sendMsgDO = shell.sendFile("xxx/a.jpg", "@4234abs8987987asd98w98989", 
 
 发送图片消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 SendMsgDO sendMsgDO = shell.sendImage("sxxx/a.jpg", "@4234abs8987987asd98w98989", null);
 ```
@@ -631,7 +631,7 @@ SendMsgDO sendMsgDO = shell.sendImage("sxxx/a.jpg", "@4234abs8987987asd98w98989"
 
 发送视频消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 SendMsgDO sendMsgDO = shell.sendVideo("sxxx/a.mp4", "@4234abs8987987asd98w98989", null);
 ```
@@ -650,7 +650,7 @@ SendMsgDO sendMsgDO = shell.sendVideo("sxxx/a.mp4", "@4234abs8987987asd98w98989"
 
 撤回消息，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 RevokeDO revokeDO = shell.revoke("5961489659369359345", "filehelper", "15105439316990");
 ```
@@ -669,7 +669,7 @@ RevokeDO revokeDO = shell.revoke("5961489659369359345", "filehelper", "151054393
 
 登录的终极接口，可以先读取本地登录状态信息判断登录状态，再决定是否重新登录，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.autoLogin(true, null, false, null, param -> QRCodeTools.showLoginCode(param.getQrcode()), () -> QRCodeTools.dismissLoginCode(), null);
 ```
@@ -692,7 +692,7 @@ shell.autoLogin(true, null, false, null, param -> QRCodeTools.showLoginCode(para
 
 dump登录信息，用于重新加载登录状态，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 shell.dumpLoginStatus(null);
 ```
@@ -709,7 +709,7 @@ shell.dumpLoginStatus(null);
 
 重新加载登录dump下来的登录状态，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 StatusResponseDO statusResponseDO = shell.loadLoginStatus(null, () -> {
                         System.out.println("loginCallback");
@@ -732,7 +732,7 @@ StatusResponseDO statusResponseDO = shell.loadLoginStatus(null, () -> {
 
 搜索好友，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.searchFriends("手机传输助手", "filehelper", null, "wechatAccount");
 ```
@@ -752,7 +752,7 @@ List<ContactDO> contactList = shell.searchFriends("手机传输助手", "filehel
 
 搜索群聊，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.searchChatrooms("广场舞", "@@sad9s8d98sd98df89s989sd89f89");
 ```
@@ -770,7 +770,7 @@ List<ContactDO> contactList = shell.searchChatrooms("广场舞", "@@sad9s8d98sd9
 
 搜索群聊，🌰
 
-```
+```java
 Shell shell = Shell.getInstance();
 List<ContactDO> contactList = shell.searchChatrooms("连岳", "@sa89df9sd89sd9898jsd9sd9");
 ```
